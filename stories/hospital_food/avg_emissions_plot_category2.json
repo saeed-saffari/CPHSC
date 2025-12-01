@@ -1,0 +1,35 @@
+{
+    "categories": [
+        "Beef",
+        "Dairy & Alternatives",
+        "Supplement Drinks",
+        "Vegetables & Fruits",
+        "Desserts",
+        "All Other Animal Meat/Fish",
+        "Grains & Starches",
+        "Beverages",
+        "Plant Based Proteins"
+    ],
+    "values": [
+        85927.50787744501,
+        57812.54341443543,
+        39904.18570333333,
+        23950.345873996415,
+        21169.090712463338,
+        17837.584861219377,
+        14707.21034320625,
+        5639.367551589334,
+        406.2314793683334
+    ],
+    "colors": [
+        "#0B1E38",
+        "#12345A",
+        "#1C4F7A",
+        "#2F6E9B",
+        "#4A8FBA",
+        "#73ACD7",
+        "#9BC4E8",
+        "#C2DAF2",
+        "#E3EFF9"
+    ]
+}
