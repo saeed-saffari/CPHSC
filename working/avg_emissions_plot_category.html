@@ -1,0 +1,10 @@
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<div id="avgPlot" style="width:100%;height:600px;"></div>
+
+<script>
+fetch("https://raw.githubusercontent.com/saeed-saffari/CPHSC/main/stories/hospital_food/avg_emissions_plot_category.json")
+  .then(res => res.json())
+  .then(fig => {
+      Plotly.newPlot("avgPlot", fig.data, fig.layout);
+  });
+</script>

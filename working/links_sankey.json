@@ -1,0 +1,57 @@
+[
+  {
+    "IDsource": 0,
+    "IDtarget": 1,
+    "value": 2531471.8963
+  },
+  {
+    "IDsource": 0,
+    "IDtarget": 2,
+    "value": 792560.3635
+  },
+  {
+    "IDsource": 1,
+    "IDtarget": 3,
+    "value": 1031130.0945
+  },
+  {
+    "IDsource": 1,
+    "IDtarget": 4,
+    "value": 214051.0183
+  },
+  {
+    "IDsource": 1,
+    "IDtarget": 5,
+    "value": 693750.521
+  },
+  {
+    "IDsource": 1,
+    "IDtarget": 6,
+    "value": 592540.2625
+  },
+  {
+    "IDsource": 2,
+    "IDtarget": 7,
+    "value": 287404.1505
+  },
+  {
+    "IDsource": 2,
+    "IDtarget": 8,
+    "value": 176486.5241
+  },
+  {
+    "IDsource": 2,
+    "IDtarget": 9,
+    "value": 4874.7778
+  },
+  {
+    "IDsource": 2,
+    "IDtarget": 10,
+    "value": 69765.8226
+  },
+  {
+    "IDsource": 2,
+    "IDtarget": 11,
+    "value": 254029.0885
+  }
+]
