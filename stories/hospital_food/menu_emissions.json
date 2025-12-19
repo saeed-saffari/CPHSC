@@ -1,0 +1,139 @@
+{
+  "meals": [
+    {
+      "meal": "Breakfast",
+      "items": [
+        {
+          "food_id": "A_egg_consumed_ON",
+          "name": "Eggs",
+          "co2e": 1.9
+        },
+        {
+          "food_id": "A_milk_consumed_ON",
+          "name": "Milk",
+          "co2e": 0.95
+        },
+        {
+          "food_id": "A_yogurt_consumed_ON",
+          "name": "Yogurt",
+          "co2e": 1.4
+        },
+        {
+          "food_id": "A_butter_consumed_ON",
+          "name": "Butter",
+          "co2e": 0.07
+        },
+        {
+          "food_id": "Muffin_Proxy_Bread_Sugar",
+          "name": "Muffin",
+          "co2e": 0.9
+        },
+        {
+          "food_id": "Oatmeal_Water_Oats",
+          "name": "Oatmeal",
+          "co2e": 0.4
+        },
+        {
+          "food_id": "F_banana_consumed_ON",
+          "name": "Banana",
+          "co2e": 0.3
+        },
+        {
+          "food_id": "A_cheese_consumed_ON",
+          "name": "Cheese",
+          "co2e": 2.5
+        }
+      ]
+    },
+    {
+      "meal": "Dinner",
+      "items": [
+        {
+          "food_id": "A_fish_consumed_ON",
+          "name": "Haddock",
+          "co2e": 1.5
+        },
+        {
+          "food_id": "A_beef_consumed_ON",
+          "name": "Beef",
+          "co2e": 5.0
+        },
+        {
+          "food_id": "A_chicken_consumed_ON",
+          "name": "Chicken",
+          "co2e": 1.8
+        },
+        {
+          "food_id": "G_rice_consumed_ON",
+          "name": "Rice",
+          "co2e": 1.2
+        },
+        {
+          "food_id": "V_carrot_field_consumed_ON",
+          "name": "Carrot",
+          "co2e": 0.3
+        },
+        {
+          "food_id": "V_broccoli_consumed_ON",
+          "name": "Broccoli",
+          "co2e": 0.25
+        },
+        {
+          "food_id": "F_apple_consumed_ON",
+          "name": "Apple",
+          "co2e": 0.35
+        },
+        {
+          "food_id": "S_icecream_consumed_ON",
+          "name": "Ice cream",
+          "co2e": 1.2
+        }
+      ]
+    },
+    {
+      "meal": "Lunch",
+      "items": [
+        {
+          "food_id": "A_chicken_consumed_ON",
+          "name": "Chicken",
+          "co2e": 1.8
+        },
+        {
+          "food_id": "A_beef_consumed_ON",
+          "name": "Beef",
+          "co2e": 5.0
+        },
+        {
+          "food_id": "G_rice_consumed_ON",
+          "name": "Rice",
+          "co2e": 1.2
+        },
+        {
+          "food_id": "V_potato_unheated_consumed_ON",
+          "name": "Potato",
+          "co2e": 0.4
+        },
+        {
+          "food_id": "V_greenbean_consumed_ON",
+          "name": "Green beans",
+          "co2e": 0.25
+        },
+        {
+          "food_id": "V_lettuce_field_consumed_ON",
+          "name": "Lettuce",
+          "co2e": 0.2
+        },
+        {
+          "food_id": "V_tomato_unheated_greenhouse_consumed_ON",
+          "name": "Tomato",
+          "co2e": 0.45
+        },
+        {
+          "food_id": "A_cheese_consumed_ON",
+          "name": "Cheese",
+          "co2e": 2.5
+        }
+      ]
+    }
+  ]
+}
