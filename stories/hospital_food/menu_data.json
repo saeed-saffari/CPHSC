@@ -1,0 +1,24 @@
+{
+  "foods": {
+    "Eggs": 1.9,
+    "Milk": 0.95,
+    "Yogurt": 1.4,
+    "Butter": 0.07,
+    "Muffin": 0.9,
+    "Oatmeal": 0.4,
+    "Banana": 0.3,
+    "Cheese": 2.5,
+    "Chicken": 1.8,
+    "Beef": 5.0,
+    "Rice": 1.2,
+    "Potato": 0.4,
+    "Green beans": 0.25,
+    "Lettuce": 0.2,
+    "Tomato": 0.45,
+    "Haddock": 1.5,
+    "Carrot": 0.3,
+    "Broccoli": 0.25,
+    "Apple": 0.35,
+    "Ice cream": 1.2
+  }
+}
