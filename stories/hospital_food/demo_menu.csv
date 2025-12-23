@@ -1,0 +1,25 @@
+meal,food_short,food_id,CO2e
+Breakfast,Eggs,A_egg_consumed_ON,1.9
+Breakfast,Milk,A_milk_consumed_ON,0.95
+Breakfast,Yogurt,A_yogurt_consumed_ON,1.4
+Breakfast,Butter,A_butter_consumed_ON,0.07
+Breakfast,Muffin,Muffin_Proxy_Bread_Sugar,0.9
+Breakfast,Oatmeal,Oatmeal_Water_Oats,0.4
+Breakfast,Banana,F_banana_consumed_ON,0.3
+Breakfast,Cheese,A_cheese_consumed_ON,2.5
+Lunch,Chicken,A_chicken_consumed_ON,1.8
+Lunch,Beef,A_beef_consumed_ON,5
+Lunch,Rice,G_rice_consumed_ON,1.2
+Lunch,Potato,V_potato_unheated_consumed_ON,0.4
+Lunch,Green beans,V_greenbean_consumed_ON,0.25
+Lunch,Lettuce,V_lettuce_field_consumed_ON,0.2
+Lunch,Tomato,V_tomato_unheated_greenhouse_consumed_ON,0.45
+Lunch,Cheese,A_cheese_consumed_ON,2.5
+Dinner,Haddock,A_fish_consumed_ON,1.5
+Dinner,Beef,A_beef_consumed_ON,5
+Dinner,Chicken,A_chicken_consumed_ON,1.8
+Dinner,Rice,G_rice_consumed_ON,1.2
+Dinner,Carrot,V_carrot_field_consumed_ON,0.3
+Dinner,Broccoli,V_broccoli_consumed_ON,0.25
+Dinner,Apple,F_apple_consumed_ON,0.35
+Dinner,Ice cream,S_icecream_consumed_ON,1.2
