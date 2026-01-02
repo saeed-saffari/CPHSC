@@ -2,12 +2,12 @@
   {
     "IDsource": 0,
     "IDtarget": 1,
-    "value": 1943200.6791
+    "value": 2531471.8963
   },
   {
     "IDsource": 0,
     "IDtarget": 2,
-    "value": 1312534.1597
+    "value": 792560.3635
   },
   {
     "IDsource": 1,
@@ -17,41 +17,41 @@
   {
     "IDsource": 1,
     "IDtarget": 4,
-    "value": 221273.9979
+    "value": 214051.0183
   },
   {
     "IDsource": 1,
     "IDtarget": 5,
-    "value": 690796.5867
+    "value": 693750.521
   },
   {
-    "IDsource": 2,
+    "IDsource": 1,
     "IDtarget": 6,
-    "value": 287889.882
+    "value": 592540.2625
   },
   {
     "IDsource": 2,
     "IDtarget": 7,
-    "value": 189661.5124
+    "value": 287404.1505
   },
   {
     "IDsource": 2,
     "IDtarget": 8,
-    "value": 4874.7778
+    "value": 176486.5241
   },
   {
     "IDsource": 2,
     "IDtarget": 9,
-    "value": 472804.4257
+    "value": 4874.7778
   },
   {
     "IDsource": 2,
     "IDtarget": 10,
-    "value": 67800.1578
+    "value": 69765.8226
   },
   {
     "IDsource": 2,
     "IDtarget": 11,
-    "value": 289503.4041
+    "value": 254029.0885
   }
 ]
