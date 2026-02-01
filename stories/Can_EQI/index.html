@@ -93,6 +93,7 @@
     <option value="no2_q_city">NO2 (ppb)</option>
     <option value="ndvi_q_city">Greenness (NDVI)</option>
     <option value="wtr_ds_q_city">Bluespace (Distance to Water) (m)</option>
+    <option value="rd_lng_q_city">Length of Roads</option>
     <option value="near_pp_q_city">Distance to Power Plants (m)</option>
     <option value="m_d_d_q_city">Annual Average UV Radiation (J/m2)</option>
     <option value="d_h_tm_q_city">Difference during heat wave (°C)</option>
@@ -209,6 +210,23 @@ function colorCold(v) {
   return interpolateColor("#eff3ff", "#08519c", scaleQ(v));
 }
 
+// function colorRoad(v) {
+//   if (v === null || v === undefined) return "#eee";
+
+//   const t = scaleQ(v); // uses your existing 1–10 scaling
+
+//   // light grey → dark grey
+//   return interpolateColor("#f0f0f0", "#525252", t);
+// }
+
+function colorRoad(v) {
+  if (v === null || v === undefined) return "#eee";
+  const t = scaleQ(v);
+  return interpolateColor("#f6e8c3", "#8c510a", t);
+}
+
+
+
 function scaleQ(v) {
   if (v === null || v === undefined) return 0;
   return Math.max(0, Math.min(1, (v - 1) / 9));
@@ -307,6 +325,14 @@ function updateLegend(variable) {
     maxLabel = "10";
   }
 
+  else if (variable === "rd_lng_q_city") {
+  label = "Length of roads score (1 to 10)";
+  gradient = "linear-gradient(to right, #f0f0f0, #525252)";
+  minLabel = "1";
+  maxLabel = "10";
+  } 
+
+
   div.innerHTML += `<em>${label}</em><br>`;
 
   div.innerHTML += `
@@ -335,7 +361,7 @@ function updateLegend(variable) {
 function loadCity(city, variable) {
   if (geoLayer) map.removeLayer(geoLayer);
 
-  fetch(`geojson_cities/${city}_da.geojson`)
+  fetch(`geojson_cities_w_rd/${city}_da.geojson`)
     .then(r => r.json())
     .then(data => {
       geoLayer = L.geoJSON(data, {
@@ -365,6 +391,9 @@ function loadCity(city, variable) {
 
             if (variable === "d_c_tm_q_city")
               return colorCold(v);
+
+            if (variable === "rd_lng_q_city")
+              return colorRoad(v);
 
             return "#ccc";
           })(),
