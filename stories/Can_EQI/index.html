@@ -182,9 +182,14 @@ function colorQ(v) {
 
 ///// new color map
 
+// function colorAir(v) {
+//   return interpolateColor("#ffffb2", "#8c2d04", scaleQ(v));
+// }
+
 function colorAir(v) {
-  return interpolateColor("#ffffb2", "#8c2d04", scaleQ(v));
+  return interpolateColor("#8c2d04", "#ffffb2", scaleQ(v));
 }
+
 
 function colorGreen(v) {
   return interpolateColor("#e5f5e0", "#006d2c", scaleQ(v));
@@ -278,7 +283,7 @@ function updateLegend(variable) {
 
   else if (variable === "pm25_q_city" || variable === "no2_q_city") {
     label = "Air pollution score (1 to 10)";
-    gradient = "linear-gradient(to right, #ffffb2, #8c2d04)";
+    gradient = "linear-gradient(to right, #8c2d04, #ffffb2)";
     minLabel = "1";
     maxLabel = "10";
   }
@@ -330,8 +335,7 @@ function updateLegend(variable) {
   gradient = "linear-gradient(to right, #f6e8c3, #8c510a)";
   minLabel = "1";
   maxLabel = "10";
-  } 
-
+  }
 
 
   div.innerHTML += `<em>${label}</em><br>`;
@@ -403,12 +407,26 @@ function loadCity(city, variable) {
           fillOpacity: 0.85
         }),
 
+        // onEachFeature: (f, layer) => {
+        //   layer.bindTooltip(
+        //     `DAUID: ${f.properties.DAUID}<br>
+        //      ${variable}: ${f.properties[variable]}`
+        //   );
+        // }
+        
         onEachFeature: (f, layer) => {
+          let value = f.properties[variable];
+
+          if (variable === "EQI_city" && value !== null && value !== undefined) {
+            value = Number(value).toFixed(2);
+          }
+          
           layer.bindTooltip(
             `DAUID: ${f.properties.DAUID}<br>
-             ${variable}: ${f.properties[variable]}`
+            ${variable}: ${value}`
           );
         }
+       
       }).addTo(map);
 
       map.fitBounds(geoLayer.getBounds());
