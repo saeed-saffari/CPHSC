@@ -208,11 +208,11 @@ function colorOrange(v) {
 }
 
 function colorRed(v) {
-  return interpolateColor("#fee5d9", "#a50f15", scaleQ(v));
+  return interpolateColor("#a50f15", "#fee5d9", scaleQ(v));
 }
 
 function colorCold(v) {
-  return interpolateColor("#eff3ff", "#08519c", scaleQ(v));
+  return interpolateColor("#08519c", "#eff3ff", scaleQ(v));
 }
 
 // function colorRoad(v) {
@@ -318,14 +318,14 @@ function updateLegend(variable) {
 
   else if (variable === "d_h_tm_q_city") {
     label = "Heat wave difference score (1 to 10)";
-    gradient = "linear-gradient(to right, #fee5d9, #a50f15)";
+    gradient = "linear-gradient(to right, #a50f15, #fee5d9)";
     minLabel = "1";
     maxLabel = "10";
   }
 
   else if (variable === "d_c_tm_q_city") {
     label = "Cold wave difference score (1 to 10)";
-    gradient = "linear-gradient(to right, #eff3ff, #08519c)";
+    gradient = "linear-gradient(to right, #08519c, #eff3ff)";
     minLabel = "1";
     maxLabel = "10";
   }
