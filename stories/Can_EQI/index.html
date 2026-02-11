@@ -1,150 +1,356 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Can-EQI Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Can-EQI Dashboard</title>
 
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <style>
-  html, body {
-    height: 100%;
-    margin: 0;
-  }
+    :root {
+      --primary: #2c3e50;
+      --bg: #f8f9fa;
+      --sidebar-w: 460px; 
+    }
 
-  #controls {
-    padding: 10px;
-    background: #fff;
-    z-index: 1000;
-  }
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      color: #333;
+      background-color: var(--bg);
+      overflow: hidden; 
+    }
 
-  #map {
-    height: calc(100vh - 50px);
-    width: 100%;
-  }
+    #app-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
 
-  /* ---- Legend styles ---- */
-  .legend {
-    background: white;
-    padding: 8px 10px;
-    font-size: 12px;
-    line-height: 18px;
-    color: #333;
-    border-radius: 4px;
-    box-shadow: 0 0 6px rgba(0,0,0,0.2);
-  }
+    /* ---- Header ---- */
+    header {
+      height: 45px;
+      flex-shrink: 0;
+      background: #fff;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      z-index: 20;
+    }
+    header h1 { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin: 0; }
+    header h1 span { font-weight: 400; color: #666; font-size: 0.9rem; margin-left: 8px; }
 
-  .legend i {
-    width: 14px;
-    height: 14px;
-    float: left;
-    margin-right: 6px;
-    opacity: 0.85;
-  }
+    /* ---- Main Layout ---- */
+    #main-content {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 45px);
+    }
+
+    #map { flex: 1; background: #eee; }
+
+    /* ---- Sidebar ---- */
+    #sidebar {
+      width: var(--sidebar-w);
+      background: #fff;
+      border-left: 1px solid #ddd;
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+      box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+    }
+
+    /* 1. Controls */
+    .sb-section {
+      padding: 12px 15px;
+      border-bottom: 1px solid #f0f0f0;
+      flex-shrink: 0;
+    }
+    
+    .ctrl-row { display: flex; gap: 10px; }
+    .ctrl-group { flex: 1; }
+    .ctrl-group label { display: block; font-size: 0.75rem; font-weight: 600; color: #555; margin-bottom: 3px; }
+    select {
+      width: 100%; padding: 5px; font-size: 0.8rem;
+      border: 1px solid #ccc; border-radius: 4px; background: #fff;
+      text-overflow: ellipsis;
+    }
+
+    /* 2. Scorecard */
+    .sb-scorecard {
+      padding: 10px 15px 20px 15px; /* Added extra padding at bottom as requested */
+      flex-shrink: 0;
+    }
+    .city-name { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; color: #111; }
+    .metrics-row { display: flex; gap: 10px; }
+    .m-box {
+      flex: 1; padding: 8px; border-radius: 6px; text-align: center;
+      border: 1px solid #e5e7eb; background: #fff; 
+    }
+    .m-label { font-size: 0.65rem; text-transform: uppercase; color: #666; font-weight: 600; margin-bottom: 2px;}
+    .m-val { font-size: 1.3rem; font-weight: 700; color: #111; line-height: 1; }
+
+    /* SEPARATOR TITLES */
+    .section-header {
+      background: #f1f5f9;
+      color: #64748b;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 6px 15px;
+      border-top: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+    }
+    .profile-header {
+      margin-top: 20px;
+    }
+
+    .m-sub {
+      font-weight: 400;
+      font-size: 0.6rem;
+    }
+
+
+
+    /* 3. Table */
+    .sb-table-wrapper {
+      /* flex: 0 0 auto; means height matches content, removing extra space */
+      flex: 0 0 auto; 
+      padding: 0;
+    }
+    
+    .rank-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+    .rank-table th {
+      text-align: left; padding: 6px 15px;
+      border-bottom: 2px solid #eee; color: #666; 
+      font-size: 0.65rem; text-transform: uppercase;
+    }
+    .rank-table td {
+      padding: 6px 15px;
+      border-bottom: 1px solid #f5f5f5; color: #333;
+    }
+    .rank-table tr:last-child td { border-bottom: none; }
+    .score-cell { font-family: monospace; font-weight: 600; font-size: 0.8rem; }
+    .rank-badge {
+      background: #eff6ff; color: #2563eb;
+      padding: 1px 6px; border-radius: 10px; font-weight: 600; font-size: 0.7rem;
+    }
+
+    /* 4. Radar */
+    .sb-radar {
+      height: 250px; 
+      padding: -4px 15px 10px 15px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    #radar-container {
+      flex: 1;
+      position: relative;
+      width: 100%;
+    }
+
+    /* Spacer to fill bottom */
+    .sb-spacer {
+      flex: 1;
+      background: #fff;
+    }
+
+    /* ---- Legend ---- */
+    .legend {
+      background: rgba(255,255,255,0.95); padding: 8px 10px;
+      border-radius: 4px; border: 1px solid #ccc;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      font-size: 10px; line-height: 1.3; color: #333; min-width: 200px;
+    }
+    .legend h4 { margin: 0 0 5px 0; font-size: 11px; font-weight: 700; border-bottom: 1px solid #eee; padding-bottom: 3px;}
+    
+    .eqi-bar { display: flex; height: 10px; width: 100%; border-radius: 2px; margin: 4px 0; border: 1px solid rgba(0,0,0,0.1); }
+    .eqi-seg { flex: 1; height: 100%; }
+    
+    .grad-bar { height: 10px; width: 100%; border-radius: 2px; margin: 4px 0; border: 1px solid rgba(0,0,0,0.1); }
+    .leg-labels { display: flex; justify-content: space-between; color: #666; font-size: 9px; margin-top: 2px;}
+
   </style>
-
 </head>
-
 <body>
 
-<div id="controls">
-  City:
-  <select id="citySelect">
-    <option value="montreal">Montreal</option>
-    <option value="abbotsford">Abbotsford</option>
-    <option value="barrie">Barrie</option>
-    <option value="calgary">Calgary</option>
-    <option value="chicoutimi">Chicoutimi</option>
-    <option value="edmonton">Edmonton</option>
-    <option value="gatineau">Gatineau</option>
-    <option value="guelph">Guelph</option>
-    <option value="halifax">Halifax</option>
-    <option value="hamilton">Hamilton</option>
-    <option value="kelowna">Kelowna</option>
-    <option value="kingston">Kingston</option>
-    <option value="kitchener">Kitchener</option>
-    <option value="london">London</option>
-    <option value="milton">Milton</option>
-    <option value="moncton">Moncton</option>
-    <option value="oshawa">Oshawa</option>
-    <option value="ottawa">Ottawa</option>
-    <option value="quebec">Quebec</option>
-    <option value="regina">Regina</option>
-    <option value="saskatoon">Saskatoon</option>
-    <option value="sherbrooke">Sherbrooke</option>
-    <option value="st_catharines">St. Catharines</option>
-    <option value="st_johns">St. John's</option>
-    <option value="toronto">Toronto</option>
-    <option value="trois_rivieres">Trois Rivieres</option>
-    <option value="vancouver">Vancouver</option>
-    <option value="victoria">Victoria</option>
-    <option value="windsor">Windsor</option>
-    <option value="winnipeg">Winnipeg</option>
-  </select>
+<div id="app-container">
+  <header>
+    <h1>Can-EQI <span>Environmental Quality Index Map</span></h1>
+  </header>
 
-  Variable:
-  <select id="varSelect">
-    <option value="EQI_city">Environmental Quality Index (EQI)</option>
+  <div id="main-content">
+    
+    <!-- Map -->
+    <div id="map"></div>
 
-    <option value="pm25_q_city">PM2.5 (ug/m3)</option>
-    <option value="no2_q_city">NO2 (ppb)</option>
-    <option value="ndvi_q_city">Greenness (NDVI)</option>
-    <option value="wtr_ds_q_city">Bluespace (Distance to Water) (m)</option>
-    <option value="rd_lng_q_city">Length of Roads</option>
-    <option value="near_pp_q_city">Distance to Power Plants (m)</option>
-    <option value="m_d_d_q_city">Annual Average UV Radiation (J/m2)</option>
-    <option value="d_h_tm_q_city">Difference during heat wave (°C)</option>
-    <option value="d_c_tm_q_city">Difference during cold wave (°C)</option>
-  </select>
+    <!-- Sidebar -->
+    <div id="sidebar">
+      
+      <!-- 1. Controls -->
+      <div class="sb-section">
+        <div class="ctrl-row">
+          <div class="ctrl-group">
+            <label>City</label>
+            <select id="citySelect">
+              <option value="montreal">Montreal</option>
+              <option value="abbotsford">Abbotsford</option>
+              <option value="barrie">Barrie</option>
+              <option value="calgary">Calgary</option>
+              <option value="chicoutimi">Chicoutimi</option>
+              <option value="edmonton">Edmonton</option>
+              <option value="gatineau">Gatineau</option>
+              <option value="guelph">Guelph</option>
+              <option value="halifax">Halifax</option>
+              <option value="hamilton">Hamilton</option>
+              <option value="kelowna">Kelowna</option>
+              <option value="kingston">Kingston</option>
+              <option value="kitchener">Kitchener</option>
+              <option value="london">London</option>
+              <option value="milton">Milton</option>
+              <option value="moncton">Moncton</option>
+              <option value="oshawa">Oshawa</option>
+              <option value="ottawa">Ottawa</option>
+              <option value="quebec">Quebec</option>
+              <option value="regina">Regina</option>
+              <option value="saskatoon">Saskatoon</option>
+              <option value="sherbrooke">Sherbrooke</option>
+              <option value="st_catharines">St. Catharines</option>
+              <option value="st_johns">St. John's</option>
+              <option value="toronto">Toronto</option>
+              <option value="trois_rivieres">Trois Rivieres</option>
+              <option value="vancouver">Vancouver</option>
+              <option value="victoria">Victoria</option>
+              <option value="windsor">Windsor</option>
+              <option value="winnipeg">Winnipeg</option>
+            </select>
+          </div>
+          <div class="ctrl-group">
+            <label>Variable</label>
+            <select id="varSelect">
+              <option value="EQI_city">Environmental Quality Index (EQI)</option>
+              <option disabled>──────────────</option>
+              <!-- Full names -->
+              <option value="pm25_q_city">PM2.5 (ug/m3)</option>
+              <option value="no2_q_city">NO2 (ppb)</option>
+              <option value="ndvi_q_city">Greenness (NDVI)</option>
+              <option value="wtr_ds_q_city">Bluespace (Distance to Water)</option>
+              <option value="near_pp_q_city">Distance to Power Plants (m)</option>
+              <option value="rd_lng_q_city">Length of Roads</option>
+              <option value="m_d_d_q_city">Annual Average UV Radiation (J/m2)</option>
+              <option value="d_h_tm_q_city">Difference during heat wave (°C)</option>
+              <option value="d_c_tm_q_city">Difference during cold wave (°C)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Scorecard -->
+      <div class="sb-scorecard">
+        <div class="city-name" id="displayName">Montreal</div>
+        <div class="metrics-row">
+          <div class="m-box">
+            <div class="m-label">EQI Score<br>
+              <span style="font-weight:400; font-size:0.6rem;">(0-100)</span>
+            </div>
+            <div class="m-val" id="displayScore">--</div>
+          </div>
+          <div class="m-box">
+            <div class="m-label">
+              National Rank <br>
+              <span style="font-weight:400; font-size:0.6rem;">(out of 30)</span>
+            </div>
+
+            <div class="m-val" id="displayRank">--</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TITLE -->
+      <div class="section-header">CITY SCORES & RANKINGS</div>
+
+      <!-- 3. Table -->
+      <div class="sb-table-wrapper">
+        <table class="rank-table">
+          <thead>
+            <tr>
+              <th width="50%">Variable</th>
+              <th width="25%">Score (1-10)</th>
+              <th width="25%">Rank (1-30)</th>
+            </tr>
+          </thead>
+          <tbody id="rankTableBody">
+            <!-- JS Injected -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- TITLE -->
+      <!--<div class="section-header">CITY PROFILE</div> -->
+      <!-- TITLE -->
+      <div class="section-header profile-header">CITY PROFILE</div>
 
 
+      <!-- 4. Radar -->
+      <div class="sb-radar">
+        <div id="radar-container">
+          <canvas id="radarChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Spacer to fill page -->
+      <div class="sb-spacer"></div>
+
+    </div>
+  </div>
 </div>
-
-<div id="map"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-const map = L.map("map").setView([45.5, -73.6], 10);
+/* -----------------------------------------------------
+   MAP INIT
+   ----------------------------------------------------- */
+const map = L.map("map", { zoomControl: false }).setView([45.5, -73.6], 10);
+L.control.zoom({ position: 'topleft' }).addTo(map);
 
-// ---- Legend control ----
-const legend = L.control({ position: "bottomright" });
-
-legend.onAdd = function () {
-  const div = L.DomUtil.create("div", "legend");
-  div.innerHTML = "<strong>Legend</strong><br>";
-  return div;
-};
-
-legend.addTo(map);
-
-
-
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  attribution: "© OpenStreetMap"
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+  attribution: 'Tiles &copy; Esri'
 }).addTo(map);
 
 let geoLayer;
 
-// function colorEQI(v) {
-//   if (v === null || v === undefined) return "#ccc";
+/* -----------------------------------------------------
+   COLORS & HELPERS
+   ----------------------------------------------------- */
+function interpolateColor(c1, c2, f) {
+  const r = c1.match(/\w\w/g).map((c, i) => {
+    const v1 = parseInt(c, 16), v2 = parseInt(c2.match(/\w\w/g)[i], 16);
+    return Math.round(v1 + f * (v2 - v1)).toString(16).padStart(2, "0");
+  });
+  return "#" + r.join("");
+}
 
-//   const min = 0;
-//   const max = 100;
-
-//   const t = Math.max(0, Math.min(1, (v - min) / (max - min)));
-
-//   // red (low EQI) → green (high EQI), as in the paper
-//   return interpolateColor("#d73027", "#1a9850", t);
-// }
-
+const scaleQ = v => (v == null) ? 0 : Math.max(0, Math.min(1, (v - 1) / 9));
 
 function colorEQI(v) {
-  if (v === null || v === undefined) return "#ccc";
-
+  if (!v) return "#ccc";
   if (v <= 20) return "#b2182b";
   if (v <= 30) return "#d6604d";
   if (v <= 40) return "#f4a582";
@@ -156,300 +362,245 @@ function colorEQI(v) {
   return "#006837";
 }
 
-
-
-function interpolateColor(color1, color2, factor) {
-  const c1 = color1.match(/\w\w/g).map(x => parseInt(x, 16));
-  const c2 = color2.match(/\w\w/g).map(x => parseInt(x, 16));
-  const c = c1.map((v, i) =>
-    Math.round(v + factor * (c2[i] - v))
-  );
-  return "#" + c.map(x => x.toString(16).padStart(2, "0")).join("");
+function getColor(k, v) {
+  if (k === "EQI_city") return colorEQI(v);
+  if (k.includes("pm25") || k.includes("no2")) return interpolateColor("#8c2d04", "#ffffb2", scaleQ(v));
+  if (k.includes("ndvi")) return interpolateColor("#e5f5e0", "#006d2c", scaleQ(v));
+  if (k.includes("wtr")) return interpolateColor("#deebf7", "#08519c", scaleQ(v));
+  if (k.includes("pp")) return interpolateColor("#efedf5", "#54278f", scaleQ(v));
+  if (k.includes("m_d_d")) return interpolateColor("#fff7bc", "#d94801", scaleQ(v));
+  if (k.includes("d_h_tm")) return interpolateColor("#a50f15", "#fee5d9", scaleQ(v));
+  if (k.includes("d_c_tm")) return interpolateColor("#08519c", "#eff3ff", scaleQ(v));
+  if (k.includes("rd_lng")) return interpolateColor("#f6e8c3", "#8c510a", scaleQ(v));
+  return "#ccc";
 }
 
-function colorQ(v) {
-  if (v === null || v === undefined) return "#ccc";
+/* -----------------------------------------------------
+   LEGEND
+   ----------------------------------------------------- */
+const legend = L.control({ position: "bottomright" });
+legend.onAdd = () => L.DomUtil.create("div", "legend");
+legend.addTo(map);
 
-  const min = 1;
-  const max = 10;
-
-  const t = Math.max(0, Math.min(1, (v - min) / (max - min)));
-
-  // light (worse) → dark (better)
-  return interpolateColor("#a8ddb5", "#084081", t);
-}
-
-
-///// new color map
-
-// function colorAir(v) {
-//   return interpolateColor("#ffffb2", "#8c2d04", scaleQ(v));
-// }
-
-function colorAir(v) {
-  return interpolateColor("#8c2d04", "#ffffb2", scaleQ(v));
-}
-
-
-function colorGreen(v) {
-  return interpolateColor("#e5f5e0", "#006d2c", scaleQ(v));
-}
-
-function colorBlue(v) {
-  return interpolateColor("#deebf7", "#08519c", scaleQ(v));
-}
-
-function colorPurple(v) {
-  return interpolateColor("#efedf5", "#54278f", scaleQ(v));
-}
-
-function colorOrange(v) {
-  return interpolateColor("#fff7bc", "#d94801", scaleQ(v));
-}
-
-function colorRed(v) {
-  return interpolateColor("#a50f15", "#fee5d9", scaleQ(v));
-}
-
-function colorCold(v) {
-  return interpolateColor("#08519c", "#eff3ff", scaleQ(v));
-}
-
-// function colorRoad(v) {
-//   if (v === null || v === undefined) return "#eee";
-
-//   const t = scaleQ(v); // uses your existing 1–10 scaling
-
-//   // light grey → dark grey
-//   return interpolateColor("#f0f0f0", "#525252", t);
-// }
-
-function colorRoad(v) {
-  if (v === null || v === undefined) return "#eee";
-  const t = scaleQ(v);
-  return interpolateColor("#f6e8c3", "#8c510a", t);
-}
-
-
-
-function scaleQ(v) {
-  if (v === null || v === undefined) return 0;
-  return Math.max(0, Math.min(1, (v - 1) / 9));
-}
-
-/////////
-
-function updateLegend(variable) {
+function updateLegend(k) {
   const div = legend.getContainer();
-  div.innerHTML = "<strong>Legend</strong><br>";
+  div.innerHTML = "<h4>Legend</h4>";
 
-  let label = "";
-  let gradient = "";
-  let minLabel = "";
-  let maxLabel = "";
+  if (k === "EQI_city") {
+    div.innerHTML += `<div><em>EQI (Deciles)</em></div>`;
+    const cols = ["#b2182b", "#d6604d", "#f4a582", "#fddbc7", "#e6f598", "#abdda4", "#66c2a5", "#1a9850", "#006837"];
+    let h = `<div class="eqi-bar">`;
+    cols.forEach(c => h += `<div class="eqi-seg" style="background:${c}"></div>`);
+    h += `</div><div class="leg-labels"><span>Low (0)</span><span>High (100)</span></div>`;
+    div.innerHTML += h;
+  } else {
+    // Specific gradients per variable
+    let g = "linear-gradient(to right, #ccc, #333)", min="1", max="10";
+    let label = "Score (1-10)";
 
-  // if (variable === "EQI_city") {
-  //   label = "EQI (0 to 100)";
-  //   gradient = "linear-gradient(to right, #d73027, #1a9850)";
-  //   minLabel = "0";
-  //   maxLabel = "100";
-  // }
-
-  if (variable === "EQI_city") {
-    div.innerHTML += "<em>EQI (deciles)</em><br>";
-
-    const grades = [
-      [0, 20, "#b2182b"],
-      [21, 30, "#d6604d"],
-      [31, 40, "#f4a582"],
-      [41, 50, "#fddbc7"],
-      [51, 60, "#e6f598"],
-      [61, 70, "#abdda4"],
-      [71, 80, "#66c2a5"],
-      [81, 90, "#1a9850"],
-      [91, 100, "#006837"]
-    ];
-
-    grades.forEach(g => {
-      div.innerHTML += `
-        <i style="background:${g[2]}"></i>
-        ${g[0]}–${g[1]}<br>
-      `;
-    });
-
-    return;
+    if (k.includes("pm25") || k.includes("no2")) {
+      g="linear-gradient(to right, #8c2d04, #ffffb2)"; min="Clean"; max="Polluted"; label="Air Quality";
+    }
+    else if (k.includes("ndvi")) {
+      g="linear-gradient(to right, #e5f5e0, #006d2c)"; min="Less Green"; max="More Green"; label="Greenness";
+    }
+    else if (k.includes("wtr")) {
+      g="linear-gradient(to right, #deebf7, #08519c)"; min="Far"; max="Close"; label="Proximity to Water";
+    }
+    else if (k.includes("pp")) {
+      g="linear-gradient(to right, #efedf5, #54278f)"; min="Close"; max="Far"; label="Distance to Power Plants";
+    }
+    else if (k.includes("rd_lng")) {
+      g="linear-gradient(to right, #f6e8c3, #8c510a)"; min="Low"; max="High"; label="Road Density";
+    }
+    else if (k.includes("m_d_d")) {
+      g="linear-gradient(to right, #fff7bc, #d94801)"; min="Low"; max="High"; label="UV Radiation";
+    }
+    else if (k.includes("d_h_tm")) {
+      g="linear-gradient(to right, #a50f15, #fee5d9)"; min="High Diff"; max="Low Diff"; label="Heat Wave Effect";
+    }
+    else if (k.includes("d_c_tm")) {
+      g="linear-gradient(to right, #08519c, #eff3ff)"; min="High Diff"; max="Low Diff"; label="Cold Wave Effect";
+    }
+    
+    div.innerHTML += `<div><em>${label}</em></div>`;
+    div.innerHTML += `
+      <div class="grad-bar" style="background:${g}"></div>
+      <div class="leg-labels"><span>${min}</span><span>${max}</span></div>
+    `;
   }
-
-
-  else if (variable === "pm25_q_city" || variable === "no2_q_city") {
-    label = "Air pollution score (1 to 10)";
-    gradient = "linear-gradient(to right, #8c2d04, #ffffb2)";
-    minLabel = "1";
-    maxLabel = "10";
-  }
-
-  else if (variable === "ndvi_q_city") {
-    label = "Greenness score (1 to 10)";
-    gradient = "linear-gradient(to right, #e5f5e0, #006d2c)";
-    minLabel = "1";
-    maxLabel = "10";
-  }
-
-  else if (variable === "wtr_ds_q_city") {
-    label = "Bluespace score (1 to 10)";
-    gradient = "linear-gradient(to right, #deebf7, #08519c)";
-    minLabel = "1";
-    maxLabel = "10";
-  }
-
-  else if (variable === "near_pp_q_city") {
-    label = "Distance to power plants score (1 to 10)";
-    gradient = "linear-gradient(to right, #efedf5, #54278f)";
-    minLabel = "1";
-    maxLabel = "10";
-  }
-
-  else if (variable === "m_d_d_q_city") {
-    label = "UV radiation score (1 to 10)";
-    gradient = "linear-gradient(to right, #fff7bc, #d94801)";
-    minLabel = "1";
-    maxLabel = "10";
-  }
-
-  else if (variable === "d_h_tm_q_city") {
-    label = "Heat wave difference score (1 to 10)";
-    gradient = "linear-gradient(to right, #a50f15, #fee5d9)";
-    minLabel = "1";
-    maxLabel = "10";
-  }
-
-  else if (variable === "d_c_tm_q_city") {
-    label = "Cold wave difference score (1 to 10)";
-    gradient = "linear-gradient(to right, #08519c, #eff3ff)";
-    minLabel = "1";
-    maxLabel = "10";
-  }
-
-  else if (variable === "rd_lng_q_city") {
-  label = "Length of roads score (1 to 10)";
-  gradient = "linear-gradient(to right, #f6e8c3, #8c510a)";
-  minLabel = "1";
-  maxLabel = "10";
-  }
-
-
-  div.innerHTML += `<em>${label}</em><br>`;
-
-  div.innerHTML += `
-    <div style="
-      height: 14px;
-      width: 220px;
-      background: ${gradient};
-      margin: 8px 0 4px 0;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-    "></div>
-    <div style="
-      display:flex;
-      justify-content:space-between;
-      width:220px;
-    ">
-      <span>${minLabel}</span>
-      <span>${maxLabel}</span>
-    </div>
-  `;
 }
- 
-///////
 
-
+// Load GeoJSON
 function loadCity(city, variable) {
   if (geoLayer) map.removeLayer(geoLayer);
-
   fetch(`geojson_cities_w_rd/${city}_da.geojson`)
     .then(r => r.json())
     .then(data => {
       geoLayer = L.geoJSON(data, {
         style: f => ({
-          fillColor: (() => {
-            const v = f.properties[variable];
-
-            if (variable === "EQI_city") return colorEQI(v);
-
-            if (variable === "pm25_q_city" || variable === "no2_q_city")
-              return colorAir(v);
-
-            if (variable === "ndvi_q_city")
-              return colorGreen(v);
-
-            if (variable === "wtr_ds_q_city")
-              return colorBlue(v);
-
-            if (variable === "near_pp_q_city")
-              return colorPurple(v);
-
-            if (variable === "m_d_d_q_city")
-              return colorOrange(v);
-
-            if (variable === "d_h_tm_q_city")
-              return colorRed(v);
-
-            if (variable === "d_c_tm_q_city")
-              return colorCold(v);
-
-            if (variable === "rd_lng_q_city")
-              return colorRoad(v);
-
-            return "#ccc";
-          })(),
-          weight: 0.3,
-          color: "#444",
-          fillOpacity: 0.85
+          fillColor: getColor(variable, f.properties[variable]),
+          weight: 0.5, color: "#fff", opacity: 0.8, fillOpacity: 0.75
         }),
-
-        // onEachFeature: (f, layer) => {
-        //   layer.bindTooltip(
-        //     `DAUID: ${f.properties.DAUID}<br>
-        //      ${variable}: ${f.properties[variable]}`
-        //   );
-        // }
-        
-        onEachFeature: (f, layer) => {
-          let value = f.properties[variable];
-
-          if (variable === "EQI_city" && value !== null && value !== undefined) {
-            value = Number(value).toFixed(2);
-          }
-          
-          layer.bindTooltip(
-            `DAUID: ${f.properties.DAUID}<br>
-            ${variable}: ${value}`
-          );
+        onEachFeature: (f, l) => {
+          let v = f.properties[variable];
+          l.bindTooltip(`DA: ${f.properties.DAUID}<br>Val: ${v ? Number(v).toFixed(2) : 'N/A'}`, { sticky: true });
+          l.on({ mouseover: e => { e.target.setStyle({ weight:2, color:'#333', fillOpacity:1 }); e.target.bringToFront(); }, mouseout: e => geoLayer.resetStyle(e.target) });
         }
-       
       }).addTo(map);
-
       map.fitBounds(geoLayer.getBounds());
-      
-      // update legend here
       updateLegend(variable);
-      
-      // 🔑 THIS LINE FIXES YOUR ISSUE
-      setTimeout(() => {
-        map.invalidateSize();
-      }, 100);
-    });
+    })
+    .catch(e => console.error("Map Error", e));
 }
 
+/* -----------------------------------------------------
+   DATA & DASHBOARD
+   ----------------------------------------------------- */
+let cityRadarData = {}; 
+let cityRankData = {}; 
 
-document.getElementById("citySelect").onchange = () =>
-  loadCity(citySelect.value, varSelect.value);
+function normalize(n) {
+  if(!n) return "";
+  return n.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\./g, "").replace(/'/g, "").replace(/-/g, "_").replace(/\s+/g, "_");
+}
 
-document.getElementById("varSelect").onchange = () =>
-  loadCity(citySelect.value, varSelect.value);
+// EXACT ORDER requested
+const tableMap = [
+  { label: "PM2.5 (ug/m3)", scoreKey: "PM2.5 (ug/m3)", rankKey: "pm25_q_rank" },
+  { label: "NO2 (ppb)", scoreKey: "NO2 (ppb)", rankKey: "no2_q_rank" },
+  { label: "Greenness (NDVI)", scoreKey: "Greenness (NDVI)", rankKey: "ndvi_q_rank" },
+  { label: "Bluespace (Distance to Water)", scoreKey: "Bluespace (Distance to Water)", rankKey: "wtr_ds_q_rank" },
+  { label: "Distance to Power Plants (m)", scoreKey: "Distance to Power Plants (m)", rankKey: "near_pp_q_rank" },
+  { label: "Length of Roads", scoreKey: "Length of Roads", rankKey: "rd_lng_q_rank" },
+  { label: "Annual Average UV Radiation (J/m2)", scoreKey: "Annual Average UV Radiation (J/m2)", rankKey: "m_d_d_q_rank" },
+  { label: "Difference during heat wave (°C)", scoreKey: "Difference during heat wave (°C)", rankKey: "d_h_tm_q_rank" },
+  { label: "Difference during cold wave (°C)", scoreKey: "Difference during cold wave (°C)", rankKey: "d_c_tm_q_rank" }
+];
 
-loadCity("montreal", "EQI_city");
+Promise.all([
+  fetch("city_profiles.json").then(r => r.json()),
+  new Promise(resolve => {
+    Papa.parse("EQI_city_rankinig_with_rank.csv", {
+      download: true, header: true, skipEmptyLines: true,
+      complete: res => resolve(res.data)
+    });
+  })
+]).then(([jsonData, csvData]) => {
+  cityRadarData = jsonData;
+  csvData.forEach(row => {
+    let name = row.City || row.city || Object.values(row)[0];
+    const key = normalize(name);
+    if (key) cityRankData[key] = row;
+  });
+
+  const startCity = "montreal";
+  updateDashboard(startCity);
+  initRadar(startCity);
+  loadCity(startCity, "EQI_city");
+});
+
+function updateDashboard(city) {
+  const scores = cityRadarData[city] || {};
+  const ranks = cityRankData[city] || {};
+
+  // 1. Name
+  const sel = document.getElementById("citySelect");
+  document.getElementById("displayName").textContent = sel.options[sel.selectedIndex].text;
+
+  // 2. Score
+  let eqi = scores["EQI"] || scores["EQI_city"] || ranks["EQI"] || ranks["EQI_city"] || ranks["Score"];
+  if (eqi) {
+    document.getElementById("displayScore").innerText = parseFloat(eqi).toFixed(1);
+  } else {
+    document.getElementById("displayScore").innerText = "N/A";
+  }
+
+  // 3. Rank
+  let r = ranks["EQI_rank"] || ranks["rank"] || "-";
+  document.getElementById("displayRank").innerText = r !== "-" ? `#${r}` : "-";
+
+  // 4. Table
+  const tbody = document.getElementById("rankTableBody");
+  tbody.innerHTML = "";
+  
+  tableMap.forEach(m => {
+    const s = scores[m.scoreKey] ? parseFloat(scores[m.scoreKey]).toFixed(1) : "-";
+    const r = ranks[m.rankKey] || "-";
+    tbody.innerHTML += `<tr>
+      <td>${m.label}</td>
+      <td class="score-cell">${s}</td>
+      <td>${r !== "-" ? `<span class="rank-badge">#${r}</span>` : "-"}</td>
+    </tr>`;
+  });
+}
+
+/* -----------------------------------------------------
+   RADAR CHART
+   ----------------------------------------------------- */
+let radarChart = null;
+
+function initRadar(city) {
+  const ctx = document.getElementById("radarChart");
+  if (!ctx) return;
+  if (radarChart) radarChart.destroy();
+
+  Chart.defaults.font.family = "'Inter'";
+  Chart.defaults.font.size = 10;
+  
+  // Wrap long labels for display
+  const radarLabels = tableMap.map(m => {
+     if(m.label.length > 30) {
+       const mid = Math.floor(m.label.length/2);
+       const space = m.label.indexOf(' ', mid);
+       if(space > 0) return [m.label.substr(0,space), m.label.substr(space+1)];
+     }
+     return m.label;
+  });
+
+  radarChart = new Chart(ctx, {
+    type: "radar",
+    data: {
+      labels: radarLabels,
+      datasets: [{
+        label: "Score",
+        data: tableMap.map(m => cityRadarData[city]?.[m.scoreKey] || 0),
+        borderColor: "#1a9850",
+        backgroundColor: "rgba(26,152,80,0.2)",
+        borderWidth: 1.5,
+        pointRadius: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          min: 0, max: 10,
+          ticks: { display: false, stepSize: 2 }, 
+          pointLabels: { font: { size: 9, weight: '500' } }
+        }
+      }
+    }
+  });
+}
+
+function updateRadar(city) {
+  if (!radarChart) { initRadar(city); return; }
+  radarChart.data.datasets[0].data = tableMap.map(m => cityRadarData[city]?.[m.scoreKey] || 0);
+  radarChart.update();
+}
+
+// Events
+document.getElementById("citySelect").onchange = function() {
+  updateDashboard(this.value);
+  updateRadar(this.value);
+  loadCity(this.value, document.getElementById("varSelect").value);
+}
+document.getElementById("varSelect").onchange = function() {
+  loadCity(document.getElementById("citySelect").value, this.value);
+}
 </script>
-
 </body>
 </html>
