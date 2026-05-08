@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Francophone Demographics Dashboard</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Libraries -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Chroma.js for automatic color scaling -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #2c3e50;
+      --bg: #f8f9fa;
+      --sidebar-w: 500px;
+    }
+
+    body, html { height: 100%; margin: 0; font-family: 'Inter', sans-serif; color: #333; background-color: var(--bg); overflow: hidden; }
+    #app-container { display: flex; flex-direction: column; height: 100vh; }
+
+    /* ---- Header ---- */
+    header { height: 55px; flex-shrink: 0; background: #fff; border-bottom: 1px solid #ddd; display: flex; align-items: center; padding: 0 20px; z-index: 20; justify-content: space-between;}
+    header h1 { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin: 0; }
+    header h1 span { font-weight: 400; color: #666; font-size: 0.9rem; margin-left: 8px; }
+    .header-titles { display: flex; flex-direction: column; justify-content: center; }
+    .header-note { font-size: 0.7rem; color: #888; margin-top: 2px; }
+    #loading { color: #d93025; font-size: 0.85rem; font-weight: 600; display: none; }
+
+    /* ---- Main Layout ---- */
+    #main-content { display: flex; flex: 1; height: calc(100vh - 55px); }
+    #map { flex: 1; background: #eee; }
+
+    /* ---- Sidebar ---- */
+    #sidebar { width: var(--sidebar-w); background: #fff; border-left: 1px solid #ddd; display: flex; flex-direction: column; z-index: 10; box-shadow: -2px 0 10px rgba(0,0,0,0.05); overflow-y: auto;}
+
+    /* Controls */
+    .sb-section { padding: 12px 15px; border-bottom: 1px solid #f0f0f0; flex-shrink: 0; }
+    .ctrl-row { display: flex; gap: 10px; }
+    .ctrl-group { flex: 1; min-width: 0; }
+    .ctrl-group label { display: block; font-size: 0.75rem; font-weight: 600; color: #555; margin-bottom: 3px; }
+    select { width: 100%; padding: 5px; font-size: 0.8rem; border: 1px solid #ccc; border-radius: 4px; background: #fff; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+
+    /* Scorecard */
+    .sb-scorecard { padding: 15px; flex-shrink: 0; }
+    .da-title { font-size: 0.7rem; text-transform: uppercase; color: #888; font-weight: 700; margin-bottom: 2px;}
+    .city-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; color: #111; line-height: 1.2; }
+    .metrics-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .m-box { flex: 1; padding: 8px; border-radius: 6px; text-align: center; border: 1px solid #e5e7eb; background: #fdfdfd; display: flex; flex-direction: column; justify-content: center; }
+    .m-label { font-size: 0.65rem; text-transform: uppercase; color: #666; font-weight: 600; margin-bottom: 4px; line-height: 1.1;}
+    .m-val { font-size: 1.2rem; font-weight: 700; color: #08519c; line-height: 1.1; }
+
+    /* Tables */
+    .section-header { background: #f1f5f9; color: #64748b; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; padding: 6px 15px; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; letter-spacing: 0.5px; }
+    .sb-table-wrapper { flex: 0 0 auto; padding: 0 0 20px 0; }
+    .rank-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+    .rank-table th { text-align: left; padding: 6px 15px; border-bottom: 2px solid #eee; color: #666; font-size: 0.65rem; text-transform: uppercase; }
+    .rank-table th.num, .rank-table td.num { text-align: right; }
+    .rank-table td { padding: 6px 15px; border-bottom: 1px solid #f5f5f5; color: #333; }
+    .score-cell { font-family: monospace; font-weight: 600; font-size: 0.8rem; color: #08519c; }
+
+    /* Legend */
+    .legend { background: rgba(255,255,255,0.95); padding: 8px 10px; border-radius: 4px; border: 1px solid #ccc; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 10px; line-height: 1.3; color: #333; min-width: 200px; }
+    .legend h4 { margin: 0 0 5px 0; font-size: 11px; font-weight: 700; border-bottom: 1px solid #eee; padding-bottom: 3px;}
+    .grad-bar { height: 10px; width: 100%; border-radius: 2px; margin: 4px 0; border: 1px solid rgba(0,0,0,0.1); }
+    .leg-labels { display: flex; justify-content: space-between; color: #666; font-size: 9px; margin-top: 2px;}
+
+    /* Custom Tooltip */
+    .custom-tooltip {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      line-height: 1.3;
+      color: #333;
+      padding: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      border-radius: 4px;
+      min-width: 210px;
+    }
+    .tooltip-table { width: 100%; border-collapse: collapse; margin-top: 6px; border-top: 1px solid #eee; padding-top: 6px; }
+    .tooltip-table td { padding: 3px 0; }
+    .tooltip-table .num { text-align: right; font-weight: 700; color: #111; }
+  </style>
+</head>
+<body>
+
+<div id="app-container">
+  <header>
+    <div class="header-titles">
+      <h1>🇨🇦 Francophone Demographics Dashboard <span>DA-Level Interactive Map</span></h1>
+      <span class="header-note">* Note: All population figures are estimates, not exact counts.</span>
+    </div>
+    <div id="loading">⏳ Loading Province Data...</div>
+  </header>
+
+  <div id="main-content">
+    <div id="map"></div>
+    <div id="sidebar">
+      
+      <!-- 1. Controls -->
+      <div class="sb-section">
+        <div class="ctrl-row">
+          <div class="ctrl-group">
+            <label>Province</label>
+            <select id="provSelect">
+              <option value="24_Quebec.geojson">Quebec</option>
+              <option value="35_Ontario.geojson">Ontario</option>
+              <option value="13_New_Brunswick.geojson">New Brunswick</option>
+              <option value="12_Nova_Scotia.geojson" selected>Nova Scotia</option>
+              <option value="59_British_Columbia.geojson">British Columbia</option>
+              <option value="48_Alberta.geojson">Alberta</option>
+              <option value="46_Manitoba.geojson">Manitoba</option>
+              <option value="47_Saskatchewan.geojson">Saskatchewan</option>
+              <option value="10_Newfoundland_and_Labrador.geojson">Newfoundland and Labrador</option>
+              <option value="11_Prince_Edward_Island.geojson">Prince Edward Island</option>
+              <option value="60_Yukon.geojson">Yukon</option>
+              <option value="61_Northwest_Territories.geojson">Northwest Territories</option>
+              <option value="62_Nunavut.geojson">Nunavut</option>
+            </select>
+          </div>
+          <div class="ctrl-group">
+            <label>Parameter to Map</label>
+            <select id="varSelect">
+              <optgroup label="Demographics">
+                <option value="pop_2021">Total Population 2021</option>
+                <option value="pop_under_19">Population Under 19</option>
+                <option value="pop_0_4">Population Under 5</option>
+                <option value="share_under_19">Share Under 19 (%)</option>
+                <option value="share_under_5">Share Under 5 (%)</option>
+              </optgroup>
+              <optgroup label="First Official Language Spoken">
+                <option value="first_lang_french">First Lang: French (Total)</option>
+                <option value="first_lang_french_under_19" selected>First Lang: French (< 19)</option>
+                <option value="first_lang_french_under_5">First Lang: French (< 5)</option>
+                <option value="first_lang_eng_french">First Lang: Eng & French (Total)</option>
+                <option value="first_lang_eng_french_under_19">First Lang: Eng & French (< 19)</option>
+                <option value="first_lang_eng_french_under_5">First Lang: Eng & French (< 5)</option>
+              </optgroup>
+              <optgroup label="Knowledge of Official Languages">
+                <option value="know_french_only">Know French Only (Total)</option>
+                <option value="know_french_only_under_19">Know French Only (< 19)</option>
+                <option value="know_french_only_under_5">Know French Only (< 5)</option>
+                <option value="know_eng_french">Know Eng & French (Total)</option>
+                <option value="know_eng_french_under_19">Know Eng & French (< 19)</option>
+                <option value="know_eng_french_under_5">Know Eng & French (< 5)</option>
+              </optgroup>
+              <optgroup label="Mother Tongue">
+                <option value="mother_french">Mother Tongue: French (Total)</option>
+                <option value="mother_french_under_19">Mother Tongue: French (< 19)</option>
+                <option value="mother_french_under_5">Mother Tongue: French (< 5)</option>
+                <option value="mother_eng_french">Mother Tongue: Eng & French (Total)</option>
+                <option value="mother_eng_french_under_19">Mother Tongue: Eng & French (< 19)</option>
+                <option value="mother_eng_french_under_5">Mother Tongue: Eng & French (< 5)</option>
+                <option value="mother_french_non_official">Mother Tongue: French + Non-Official (Total)</option>
+                <option value="mother_french_non_official_under_19">Mother Tongue: French + Non-Official (< 19)</option>
+                <option value="mother_french_non_official_under_5">Mother Tongue: French + Non-Official (< 5)</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. DA Profile Scorecards -->
+      <div class="sb-scorecard">
+        <div class="da-title" id="hoverTitle">HOVER OVER A DA TO EXPLORE</div>
+        <div class="city-name" id="displayCity">Map Explorer</div>
+        
+        <!-- Row 1 -->
+        <div class="metrics-row">
+          <div class="m-box">
+            <div class="m-label">Total Population<br><span style="font-weight:400; font-size:0.6rem;">(All Ages)</span></div>
+            <div class="m-val" id="displayPop">--</div>
+          </div>
+          <div class="m-box">
+            <div class="m-label">1st Lang: French<br><span style="font-weight:400; font-size:0.6rem;">(All Ages)</span></div>
+            <div class="m-val" id="displayFlfTotal">--</div>
+          </div>
+        </div>
+
+        <!-- Row 2 -->
+        <div class="metrics-row" style="margin-bottom: 0;">
+          <div class="m-box">
+            <div class="m-label">1st Lang: French<br><span style="font-weight:400; font-size:0.6rem;">(Under 19)</span></div>
+            <div class="m-val" id="displayFlf19">--</div>
+          </div>
+          <div class="m-box">
+            <div class="m-label">1st Lang: French<br><span style="font-weight:400; font-size:0.6rem;">(Under 5)</span></div>
+            <div class="m-val" id="displayFlf5">--</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Comprehensive Data Tables -->
+      <div class="section-header">DEMOGRAPHICS & POPULATION</div>
+      <div class="sb-table-wrapper">
+        <table class="rank-table">
+          <thead>
+            <tr>
+              <th width="40%">Metric</th>
+              <th width="20%" class="num">Total</th>
+              <th width="20%" class="num">< 19 Years</th>
+              <th width="20%" class="num">< 5 Years</th>
+            </tr>
+          </thead>
+          <tbody id="demoTableBody">
+            <tr><td>Population Count</td><td class="num score-cell">--</td><td class="num score-cell">--</td><td class="num score-cell">--</td></tr>
+            <tr><td>Share of Population</td><td class="num score-cell">100%</td><td class="num score-cell">--</td><td class="num score-cell">--</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section-header">LINGUISTIC CHARACTERISTICS</div>
+      <div class="sb-table-wrapper">
+        <table class="rank-table">
+          <thead>
+            <tr>
+              <th width="40%">Metric</th>
+              <th width="20%" class="num">Total</th>
+              <th width="20%" class="num">< 19 Years</th>
+              <th width="20%" class="num">< 5 Years</th>
+            </tr>
+          </thead>
+          <tbody id="langTableBody">
+            <tr><td>1st Lang: French</td><td class="num score-cell">--</td><td class="num score-cell">--</td><td class="num score-cell">--</td></tr>
+            <tr><td>1st Lang: Eng & Fr</td><td class="num score-cell">--</td><td class="num score-cell">--</td><td class="num score-cell">--</td></tr>
+            <tr><td>Know: French Only</td><td class="num score-cell">--</td><td class="num score-cell">--</td><td class="num score-cell">--</td></tr>
+            <tr><td>Know: Eng & Fr</td><td class="num score-cell">--</td><td class="num score-cell">--</td><td class="num score-cell">--</td></tr>
+            <tr><td>Mother Tongue: Fr</td><td class="num score-cell">--</td><td class="num score-cell">--</td><td class="num score-cell">--</td></tr>
+            <tr><td>Mother Tongue: Eng & Fr</td><td class="num score-cell">--</td><td class="num score-cell">--</td><td class="num score-cell">--</td></tr>
+            <tr><td>Mother Tongue: Fr + Non-Off</td><td class="num score-cell">--</td><td class="num score-cell">--</td><td class="num score-cell">--</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* -----------------------------------------------------
+   STATE & SETUP
+   ----------------------------------------------------- */
+const map = L.map("map", { zoomControl: false }).setView([45.0, -63.0], 6); // Default view centered on NS
+L.control.zoom({ position: 'topleft' }).addTo(map);
+
+// Map Base: Esri World Topo Map
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+  attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
+}).addTo(map);
+
+let geoLayer;
+let currentGeoData = null; 
+let colorScale = null;
+
+// The relative path where your geojsons are stored
+const GEOJSON_PATH = "province_geojson_simplified/";
+
+/* -----------------------------------------------------
+   HELPER FUNCTIONS 
+   ----------------------------------------------------- */
+function fmtNum(val, isShare = false) {
+  if (val === null || val === undefined || isNaN(val) || val === '') return '--';
+  if (isShare) {
+    return Math.round(parseFloat(val) * 100) + '%';
+  }
+  return Math.round(parseFloat(val)).toLocaleString();
+}
+
+/* -----------------------------------------------------
+   LEGEND & COLOR SCALES 
+   ----------------------------------------------------- */
+const legend = L.control({ position: "bottomright" });
+legend.onAdd = () => L.DomUtil.create("div", "legend");
+legend.addTo(map);
+
+function setupColorScale(data, variable) {
+  let values = data.features
+    .map(f => parseFloat(f.properties[variable]))
+    .filter(v => !isNaN(v));
+  
+  if(values.length === 0) {
+      colorScale = () => '#ccc';
+      updateLegend(variable, 0, 0, '#ccc', '#ccc');
+      return;
+  }
+
+  let min = Math.min(...values);
+  let max = Math.max(...values);
+  
+  let colors =['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5', '#08519c', '#08306b'];
+  let domain = max <= 1.05 && variable.includes('share') ? [0, 1] : [min, max];
+  
+  colorScale = chroma.scale(colors).domain(domain);
+  updateLegend(variable, domain[0], domain[1], colors[0], colors[colors.length-1]);
+}
+
+function updateLegend(variable, min, max, colorStart, colorEnd) {
+  const div = legend.getContainer();
+  const selectElem = document.querySelector(`#varSelect option[value='${variable}']`);
+  const labelText = selectElem ? selectElem.text : variable;
+  
+  let displayMin, displayMax;
+
+  if (max <= 1.05 && variable.includes('share')) {
+    displayMin = Math.round(min * 100) + '%';
+    displayMax = Math.round(max * 100) + '%';
+  } else {
+    displayMin = Math.round(min).toLocaleString();
+    displayMax = Math.round(max).toLocaleString();
+  }
+
+  div.innerHTML = `
+    <h4>Legend</h4>
+    <div><em>${labelText}</em></div>
+    <div class="grad-bar" style="background: linear-gradient(to right, ${colorStart}, ${colorEnd})"></div>
+    <div class="leg-labels"><span>${displayMin}</span><span>${displayMax}</span></div>
+  `;
+}
+
+/* -----------------------------------------------------
+   LOAD DATA & RENDER MAP
+   ----------------------------------------------------- */
+function loadProvince(fileName, variable) {
+  document.getElementById('loading').style.display = 'block';
+
+  if (geoLayer) map.removeLayer(geoLayer);
+
+  fetch(`${GEOJSON_PATH}${fileName}`)
+    .then(r => r.json())
+    .then(data => {
+      currentGeoData = data;
+      renderMap(variable);
+      document.getElementById('loading').style.display = 'none';
+    })
+    .catch(e => {
+      console.error("Failed to load map data.", e);
+      document.getElementById('loading').style.display = 'none';
+      alert("Error loading GeoJSON. Make sure you are running a local web server.");
+    });
+}
+
+function renderMap(variable) {
+  if(!currentGeoData) return;
+
+  setupColorScale(currentGeoData, variable);
+
+  geoLayer = L.geoJSON(currentGeoData, {
+    style: f => {
+      let val = parseFloat(f.properties[variable]);
+      return {
+        fillColor: isNaN(val) ? "#eee" : colorScale(val).hex(),
+        weight: 0.5,
+        color: "#fff",
+        opacity: 0.8,
+        fillOpacity: 0.85
+      };
+    },
+    onEachFeature: (feature, layer) => {
+      
+      // Calculate display values for the fixed Tooltip lines
+      let popTotal = fmtNum(feature.properties.pop_2021);
+      let flfTotal = fmtNum(feature.properties.first_lang_french);
+      let flf19 = fmtNum(feature.properties.first_lang_french_under_19);
+      let flf5 = fmtNum(feature.properties.first_lang_french_under_5);
+
+      // Selected parameter values
+      let rawVal = feature.properties[variable];
+      let displayVal = fmtNum(rawVal, variable.includes('share'));
+      let selectElem = document.querySelector(`#varSelect option[value='${variable}']`);
+      let paramLabel = selectElem ? selectElem.text : 'Value';
+      
+      let tooltipHTML = `
+        <div class="custom-tooltip">
+          <strong style="color: #666; font-size: 10px;">DA: ${feature.properties.DAUID || 'N/A'}</strong><br>
+          <strong style="font-size: 13px;">${feature.properties.CSDNAME || 'Unknown Sub-division'}</strong><br>
+          
+          <table class="tooltip-table">
+            <tr><td>Total Population:</td><td class="num">${popTotal}</td></tr>
+            <tr><td>1st Lang: French (Total):</td><td class="num">${flfTotal}</td></tr>
+            <tr><td>1st Lang: French (< 19):</td><td class="num">${flf19}</td></tr>
+            <tr><td>1st Lang: French (< 5):</td><td class="num">${flf5}</td></tr>
+          </table>
+
+          <div style="margin-top: 6px; border-top: 1px dashed #ccc; padding-top: 6px; color:#08519c;">
+            ${paramLabel}: <span style="font-weight:700; float:right;">${displayVal}</span>
+          </div>
+        </div>
+      `;
+      
+      layer.bindTooltip(tooltipHTML, { sticky: true });
+
+      layer.on({
+        mouseover: e => {
+          let t = e.target;
+          t.setStyle({ weight: 2, color: '#333', fillOpacity: 1 });
+          t.bringToFront();
+          updateSidebar(feature.properties, variable);
+        },
+        mouseout: e => {
+          geoLayer.resetStyle(e.target);
+        }
+      });
+    }
+  }).addTo(map);
+  
+  map.fitBounds(geoLayer.getBounds());
+}
+
+/* -----------------------------------------------------
+   SIDEBAR & DASHBOARD LOGIC
+   ----------------------------------------------------- */
+function updateSidebar(props, selectedVar) {
+  // Update Header Labels
+  document.getElementById("hoverTitle").innerText = `DA: ${props.DAUID || 'Unknown'} | PR: ${props.PRNAME || 'Unknown'}`;
+  document.getElementById("displayCity").innerText = props.CSDNAME || 'Unknown Sub-division';
+  
+  // Update Top Scorecard Boxes
+  document.getElementById("displayPop").innerText = fmtNum(props.pop_2021);
+  document.getElementById("displayFlfTotal").innerText = fmtNum(props.first_lang_french);
+  document.getElementById("displayFlf19").innerText = fmtNum(props.first_lang_french_under_19);
+  document.getElementById("displayFlf5").innerText = fmtNum(props.first_lang_french_under_5);
+
+  // Update Demographic Table
+  document.getElementById("demoTableBody").innerHTML = `
+    <tr>
+      <td>Population Count</td>
+      <td class="num score-cell">${fmtNum(props.pop_2021)}</td>
+      <td class="num score-cell">${fmtNum(props.pop_under_19)}</td>
+      <td class="num score-cell">${fmtNum(props.pop_0_4)}</td>
+    </tr>
+    <tr>
+      <td>Share of Population</td>
+      <td class="num score-cell">100%</td>
+      <td class="num score-cell">${fmtNum(props.share_under_19, true)}</td>
+      <td class="num score-cell">${fmtNum(props.share_under_5, true)}</td>
+    </tr>
+  `;
+
+  // Update Linguistic Table
+  document.getElementById("langTableBody").innerHTML = `
+    <tr>
+      <td>1st Lang: French</td>
+      <td class="num score-cell">${fmtNum(props.first_lang_french)}</td>
+      <td class="num score-cell">${fmtNum(props.first_lang_french_under_19)}</td>
+      <td class="num score-cell">${fmtNum(props.first_lang_french_under_5)}</td>
+    </tr>
+    <tr>
+      <td>1st Lang: Eng & Fr</td>
+      <td class="num score-cell">${fmtNum(props.first_lang_eng_french)}</td>
+      <td class="num score-cell">${fmtNum(props.first_lang_eng_french_under_19)}</td>
+      <td class="num score-cell">${fmtNum(props.first_lang_eng_french_under_5)}</td>
+    </tr>
+    <tr>
+      <td>Know: French Only</td>
+      <td class="num score-cell">${fmtNum(props.know_french_only)}</td>
+      <td class="num score-cell">${fmtNum(props.know_french_only_under_19)}</td>
+      <td class="num score-cell">${fmtNum(props.know_french_only_under_5)}</td>
+    </tr>
+    <tr>
+      <td>Know: Eng & Fr</td>
+      <td class="num score-cell">${fmtNum(props.know_eng_french)}</td>
+      <td class="num score-cell">${fmtNum(props.know_eng_french_under_19)}</td>
+      <td class="num score-cell">${fmtNum(props.know_eng_french_under_5)}</td>
+    </tr>
+    <tr>
+      <td>Mother Tongue: Fr</td>
+      <td class="num score-cell">${fmtNum(props.mother_french)}</td>
+      <td class="num score-cell">${fmtNum(props.mother_french_under_19)}</td>
+      <td class="num score-cell">${fmtNum(props.mother_french_under_5)}</td>
+    </tr>
+    <tr>
+      <td>Mother Tongue: Eng & Fr</td>
+      <td class="num score-cell">${fmtNum(props.mother_eng_french)}</td>
+      <td class="num score-cell">${fmtNum(props.mother_eng_french_under_19)}</td>
+      <td class="num score-cell">${fmtNum(props.mother_eng_french_under_5)}</td>
+    </tr>
+    <tr>
+      <td>Mother Tongue: Fr + Non-Off</td>
+      <td class="num score-cell">${fmtNum(props.mother_french_non_official)}</td>
+      <td class="num score-cell">${fmtNum(props.mother_french_non_official_under_19)}</td>
+      <td class="num score-cell">${fmtNum(props.mother_french_non_official_under_5)}</td>
+    </tr>
+  `;
+}
+
+/* -----------------------------------------------------
+   EVENT LISTENERS
+   ----------------------------------------------------- */
+document.getElementById("provSelect").onchange = function() {
+  loadProvince(this.value, document.getElementById("varSelect").value);
+};
+
+document.getElementById("varSelect").onchange = function() {
+  renderMap(this.value); 
+};
+
+// Start App
+window.onload = () => {
+  loadProvince(document.getElementById("provSelect").value, document.getElementById("varSelect").value);
+};
+</script>
+</body>
+</html>
