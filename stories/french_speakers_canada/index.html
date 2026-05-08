@@ -88,6 +88,62 @@
     .tooltip-table { width: 100%; border-collapse: collapse; margin-top: 6px; border-top: 1px solid #eee; padding-top: 6px; }
     .tooltip-table td { padding: 3px 0; }
     .tooltip-table .num { text-align: right; font-weight: 700; color: #111; }
+
+
+  /* -----------------------------------------------------
+       MOBILE VERSION
+    ----------------------------------------------------- */
+    
+    @media (max-width: 900px) {
+    
+      #main-content {
+        flex-direction: column;
+      }
+    
+      #map {
+        height: 55vh;
+        width: 100%;
+      }
+    
+      #sidebar {
+        width: 100%;
+        height: 45vh;
+        border-left: none;
+        border-top: 1px solid #ddd;
+        box-shadow: none;
+      }
+    
+      .ctrl-row {
+        flex-direction: column;
+      }
+    
+      .metrics-row {
+        flex-direction: column;
+      }
+    
+      .m-box {
+        min-height: 70px;
+      }
+    
+      .city-name {
+        font-size: 1rem;
+      }
+    
+      .rank-table {
+        font-size: 0.7rem;
+      }
+    
+      .legend {
+        min-width: 140px;
+        font-size: 9px;
+      }
+    
+    }
+
+      /* -----------------------------------------------------
+       MOBILE VERSION
+    ----------------------------------------------------- */
+    
   </style>
 </head>
 <body>
