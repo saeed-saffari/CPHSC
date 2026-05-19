@@ -45,7 +45,8 @@
 
     /* Controls */
     .sb-section { padding: 12px 15px; border-bottom: 1px solid #f0f0f0; flex-shrink: 0; }
-    .ctrl-row { display: flex; gap: 10px; }
+    .ctrl-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .ctrl-row:last-child { margin-bottom: 0; }
     .ctrl-group { flex: 1; min-width: 0; }
     .ctrl-group label { display: block; font-size: 0.75rem; font-weight: 600; color: #555; margin-bottom: 3px; }
     select { width: 100%; padding: 5px; font-size: 0.8rem; border: 1px solid #ccc; border-radius: 4px; background: #fff; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
@@ -158,6 +159,7 @@
       
       <!-- 1. Controls -->
       <div class="sb-section">
+        <!-- Row 1: Geography and Province -->
         <div class="ctrl-row">
           <div class="ctrl-group">
             <label>Geographic Level</label>
@@ -184,6 +186,9 @@
               <option value="62_Nunavut.geojson">Nunavut</option>
             </select>
           </div>
+        </div>
+        <!-- Row 2: Parameter to Map -->
+        <div class="ctrl-row">
           <div class="ctrl-group">
             <label>Parameter to Map</label>
             <select id="varSelect">
