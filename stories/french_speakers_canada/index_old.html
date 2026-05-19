@@ -90,7 +90,7 @@
     .tooltip-table .num { text-align: right; font-weight: 700; color: #111; }
 
 
-    /* -----------------------------------------------------
+  /* -----------------------------------------------------
        MOBILE VERSION
     ----------------------------------------------------- */
     
@@ -139,6 +139,11 @@
       }
     
     }
+
+      /* -----------------------------------------------------
+       MOBILE VERSION
+    ----------------------------------------------------- */
+    
   </style>
 </head>
 <body>
@@ -159,13 +164,6 @@
       <!-- 1. Controls -->
       <div class="sb-section">
         <div class="ctrl-row">
-          <div class="ctrl-group">
-            <label>Geographic Level</label>
-            <select id="levelSelect">
-              <option value="da" selected>DA Level</option>
-              <option value="csd">Subdivision Level</option>
-            </select>
-          </div>
           <div class="ctrl-group">
             <label>Province</label>
             <select id="provSelect">
@@ -318,11 +316,8 @@ let geoLayer;
 let currentGeoData = null; 
 let colorScale = null;
 
-// The relative paths where your geojsons are stored
-const GEOJSON_PATHS = {
-  da: "province_geojson_simplified/",
-  csd: "province_geojson_csd/"
-};
+// The relative path where your geojsons are stored
+const GEOJSON_PATH = "province_geojson_simplified/";
 
 /* -----------------------------------------------------
    HELPER FUNCTIONS 
@@ -394,10 +389,7 @@ function loadProvince(fileName, variable) {
 
   if (geoLayer) map.removeLayer(geoLayer);
 
-  const level = document.getElementById("levelSelect").value;
-  const path = GEOJSON_PATHS[level];
-
-  fetch(`${path}${fileName}`)
+  fetch(`${GEOJSON_PATH}${fileName}`)
     .then(r => r.json())
     .then(data => {
       currentGeoData = data;
@@ -441,15 +433,9 @@ function renderMap(variable) {
       let selectElem = document.querySelector(`#varSelect option[value='${variable}']`);
       let paramLabel = selectElem ? selectElem.text : 'Value';
       
-      // Setup dynamic geography labels depending on selection
-      const level = document.getElementById("levelSelect").value;
-      const geoLabel = level === "da" 
-        ? `DA: ${feature.properties.DAUID || 'N/A'}` 
-        : `Subdivision`;
-
       let tooltipHTML = `
         <div class="custom-tooltip">
-          <strong style="color: #666; font-size: 10px;">${geoLabel}</strong><br>
+          <strong style="color: #666; font-size: 10px;">DA: ${feature.properties.DAUID || 'N/A'}</strong><br>
           <strong style="font-size: 13px;">${feature.properties.CSDNAME || 'Unknown Sub-division'}</strong><br>
           
           <table class="tooltip-table">
@@ -488,13 +474,8 @@ function renderMap(variable) {
    SIDEBAR & DASHBOARD LOGIC
    ----------------------------------------------------- */
 function updateSidebar(props, selectedVar) {
-  // Update Header Labels with dynamic text
-  const level = document.getElementById("levelSelect").value;
-  const geoText = level === "da" 
-    ? `DA: ${props.DAUID || 'Unknown'}` 
-    : `Subdivision`;
-
-  document.getElementById("hoverTitle").innerText = `${geoText} | PR: ${props.PRNAME || 'Unknown'}`;
+  // Update Header Labels
+  document.getElementById("hoverTitle").innerText = `DA: ${props.DAUID || 'Unknown'} | PR: ${props.PRNAME || 'Unknown'}`;
   document.getElementById("displayCity").innerText = props.CSDNAME || 'Unknown Sub-division';
   
   // Update Top Scorecard Boxes
@@ -569,13 +550,6 @@ function updateSidebar(props, selectedVar) {
 /* -----------------------------------------------------
    EVENT LISTENERS
    ----------------------------------------------------- */
-document.getElementById("levelSelect").onchange = function () {
-  loadProvince(
-    document.getElementById("provSelect").value,
-    document.getElementById("varSelect").value
-  );
-};
-
 document.getElementById("provSelect").onchange = function() {
   loadProvince(this.value, document.getElementById("varSelect").value);
 };
