@@ -11,8 +11,8 @@ real header is row 2 -> header=1 when read with pandas):
     id, region, name,
     Age < 9 yrs, Age > 65 yrs, Indigenous, African NS, Active Transport,
     Outdoor Workers, Chronic Conditions,                      <- Sensitivity
-    Heatwave Score, Air Quality PM2.5, Air Quality NO2,       <- Exposure
-    EHS Response, Material Security, Social Connectivity, Social Diversity,
+    Heatwave Score, Air Quality PM2.5, Air Quality NO2, EHS Response,  <- Exposure
+    Material Security, Social Connectivity, Social Diversity,
     Green Space, Blue Space,                                  <- Adaptive Capacity
     HVI, Normalized HVI,
     Exposure (normalized), Sensitivity (normalized), Adaptive Capacity (normalized)
@@ -60,6 +60,7 @@ INDICATOR_COLUMNS = {
     "heatWave":        ("Heatwave Score",      1),
     "airQualityPM25":  ("Air Quality PM2.5",   1),
     "airQualityNO2":   ("Air Quality NO2",     1),
+    "emsResponse":     ("EHS Response",        1),
     "age9":            ("Age < 9 yrs",         2),
     "age65":           ("Age > 65 yrs",        2),
     "indigenous":      ("Indigenous",          2),
@@ -67,7 +68,6 @@ INDICATOR_COLUMNS = {
     "activeTransport": ("Active Transport",    2),
     "outdoorWorkers":  ("Outdoor Workers",     2),
     "chronicConditions": ("Chronic Conditions", 2),
-    "emsResponse":     ("EHS Response",        3),
     "materialSecurity": ("Material Security",  3),
     "socialConnect":   ("Social Connectivity", 3),
     "socialDiversity": ("Social Diversity",    3),
