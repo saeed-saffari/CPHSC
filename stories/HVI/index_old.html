@@ -536,10 +536,7 @@ geoLayer = L.geoJSON(boundaries, {
   onEachFeature: (feature, layer) => {
     const c = dataById[feature.properties.id];
     if(!c) return;
-    layer.bindTooltip(() => {
-      const v = getValue(c, state.selectedIndex);
-      return `<b>${c.name}</b><br>${indexLabel(state.selectedIndex)}: <b>${v}</b> / 100`;
-    }, {sticky:true, opacity:0.95});
+    layer.bindTooltip(`<b>${c.name}</b>`, {sticky:true, opacity:0.95});
     layer.on('mouseover', ()=>{ if(!(state.selectedCommunity && state.selectedCommunity.id===c.id)) layer.setStyle({weight:2.5, color:'#E08E00'}); });
     layer.on('mouseout', ()=>{ geoLayer.resetStyle(layer); layer.setStyle(styleFor(feature)); });
     layer.on('click', ()=>{ selectCommunity(c); searchInput.value = c.name; });
@@ -589,8 +586,6 @@ function selectIndex(idx){
   state.selectedIndex = idx;
   renderAll();
 }
-
-renderAll();
 
 }
 
