@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nova Scotia Heat Vulnerability Index</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+  :root{
+    --bg-page:#F7F4EC;
+    --bg-panel:#FFFFFF;
+    --bg-panel-raised:#FBF9F3;
+    --line:#E5DECB;
+    --ink:#1C2B2E;
+    --text-mid:#57696B;
+    --text-dim:#93A19F;
+    --heat-lo:#2E86AB;
+    --heat-mid:#E08E00;
+    --heat-hi:#C1121F;
+    --select:#0C8C7D;
+    --ring1:#E63946; --ring1-light:#FBE1E3;
+    --ring2:#F0A202; --ring2-light:#FCEBC8;
+    --ring3:#3F9142; --ring3-light:#E2F0E1;
+    --radius:14px;
+    --font-display:'Fraunces', Georgia, serif;
+    --font-body:'IBM Plex Sans', system-ui, sans-serif;
+    --font-mono:'IBM Plex Mono', ui-monospace, monospace;
+    --shadow: 0 2px 10px rgba(28,43,46,0.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;background:var(--bg-page);color:var(--ink);font-family:var(--font-body);}
+  body{
+    background-image:
+      radial-gradient(ellipse 900px 500px at 15% -5%, rgba(224,142,0,0.06), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(193,18,31,0.05), transparent 60%);
+  }
+  .app{display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+
+  header{
+    padding:12px 28px;
+    border-bottom:1px solid var(--line);
+    background:var(--bg-panel);
+    display:flex;align-items:baseline;justify-content:space-between;gap:24px;
+    flex-shrink:0;
+  }
+  header .title-block h1{
+    font-family:var(--font-display); font-weight:600; font-size:21px;
+    letter-spacing:0.2px; margin:0; color:var(--ink);
+  }
+  header .title-block h1 em{ font-style:italic; font-weight:300; color:var(--heat-mid); }
+  header .title-block p{ margin:0;font-size:12.5px;color:var(--text-mid); letter-spacing:0.3px; }
+  header .meta{ font-family:var(--font-mono); font-size:11px;color:var(--text-dim); text-align:right;line-height:1.6; flex-shrink:0; }
+  header .meta b{color:var(--ink);font-weight:500;}
+
+  .layout{flex:1;display:grid;grid-template-columns:40% 60%;min-height:0;}
+  @media (max-width:960px){ .layout{grid-template-columns:1fr;} }
+
+  .left-panel{
+    background:var(--bg-page); border-right:1px solid var(--line);
+    padding:14px 20px 16px 20px; overflow-y:auto;
+    display:flex;flex-direction:column;gap:12px;
+  }
+  .right-panel{position:relative;background:var(--bg-page);}
+  #map{position:absolute;inset:0;z-index:1;}
+
+  .section-label{
+    font-family:var(--font-mono); font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;
+    color:var(--text-dim);margin:0 0 8px 0; display:flex;align-items:center;gap:8px;
+  }
+  .section-label::after{content:'';flex:1;height:1px;background:var(--line);}
+
+  .combo{position:relative;}
+  .combo input{
+    width:100%;padding:11px 14px;border-radius:10px;
+    background:var(--bg-panel);border:1px solid var(--line);
+    color:var(--ink);font-family:var(--font-body);font-size:14px;
+    outline:none;transition:border-color .15s ease; box-shadow:var(--shadow);
+  }
+  .combo input:focus{border-color:var(--heat-mid);}
+  .combo input::placeholder{color:var(--text-dim);}
+  .combo-list{
+    position:absolute;top:calc(100% + 6px);left:0;right:0;
+    max-height:260px;overflow-y:auto;
+    background:var(--bg-panel);border:1px solid var(--line);border-radius:10px;
+    box-shadow:0 12px 28px rgba(28,43,46,0.14); z-index:40;display:none;
+  }
+  .combo-list.open{display:block;}
+  .combo-item{
+    padding:9px 14px;font-size:13.5px;color:var(--text-mid);cursor:pointer;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .combo-item:hover, .combo-item.active{background:#FCF1DC;color:var(--ink);}
+  .combo-item .region{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);}
+  .combo-item.selected{color:var(--select);font-weight:600;}
+
+  .now-viewing{
+    background:var(--bg-panel);border:1px solid var(--line);border-radius:12px;
+    padding:10px 14px;box-shadow:var(--shadow);
+  }
+  .now-viewing .community-name{ font-family:var(--font-display);font-size:17px;font-weight:600;color:var(--ink); }
+  .now-viewing .index-row{ display:flex;align-items:center;justify-content:space-between;margin-top:5px; }
+  .now-viewing .index-name{font-size:12px;color:var(--text-mid);}
+  .now-viewing .index-value{ font-family:var(--font-mono);font-size:19px;font-weight:600; }
+  .now-viewing .bar-track{height:4px;border-radius:4px;background:var(--line);margin-top:6px;overflow:hidden;}
+  .now-viewing .bar-fill{height:100%;border-radius:4px;}
+
+  .dial-row{display:flex;flex-direction:column;gap:12px;}
+  .dial-row .dial-col{flex:1;min-width:0;}
+  .dial-panel{background:var(--bg-panel);border:1px solid var(--line);border-radius:14px;padding:8px 6px 6px;box-shadow:var(--shadow);}
+  .sunburst-wrap{display:flex;flex-direction:column;align-items:center;}
+  .sunburst-wrap svg{width:100%;max-width:320px;height:auto;}
+  .sunburst-hint{font-size:9.5px;color:var(--text-dim);text-align:center;margin-top:4px;line-height:1.3;}
+  .sun-tooltip{
+    position:fixed;pointer-events:none;z-index:100;
+    background:var(--ink);border:1px solid var(--line);border-radius:8px;
+    padding:8px 11px;font-size:12px;color:#fff;
+    box-shadow:0 8px 20px rgba(28,43,46,0.3);opacity:0;transition:opacity .1s;
+    max-width:220px;
+  }
+  .sun-tooltip .t-cat{color:#B9C4C2;font-size:10px;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:2px;}
+  .sun-tooltip .t-val{font-family:var(--font-mono);color:var(--heat-mid);}
+
+  .legend-scale{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--heat-lo),var(--heat-mid),var(--heat-hi));}
+  .legend-labels{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:5px;}
+  .ring-legend{display:flex;flex-wrap:wrap;gap:10px;padding:2px 2px;}
+  .ring-chip{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--text-mid);}
+  .ring-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+
+  footer.note{ font-size:9.5px;color:var(--text-dim);line-height:1.4; border-top:1px solid var(--line);padding-top:8px;margin-top:auto; }
+
+  .map-topbar{
+    position:absolute;top:16px;left:16px;right:16px;z-index:20;
+    display:flex;justify-content:space-between;align-items:flex-start;gap:12px;pointer-events:none;
+  }
+  .map-badge{
+    pointer-events:auto; background:rgba(255,255,255,0.92);backdrop-filter:blur(6px);
+    border:1px solid var(--line);border-radius:10px; padding:9px 14px;font-size:12.5px;color:var(--ink);box-shadow:var(--shadow);
+  }
+  .map-badge b{color:var(--heat-mid);font-weight:600;}
+  .map-legend{
+    pointer-events:auto; background:rgba(255,255,255,0.92);backdrop-filter:blur(6px);
+    border:1px solid var(--line);border-radius:10px; padding:10px 14px;min-width:200px;box-shadow:var(--shadow);
+  }
+  .map-legend .lg-title{font-size:11px;color:var(--text-mid);margin-bottom:6px;}
+  .leaflet-popup-content-wrapper{background:#fff;color:var(--ink);border-radius:8px;}
+  .leaflet-popup-tip{background:#fff;}
+  .leaflet-popup-content{font-family:var(--font-body);font-size:12.5px;margin:9px 12px;}
+  .leaflet-popup-content b{font-family:var(--font-display);font-size:14px;}
+  .leaflet-container{background:#EFEAdd;}
+
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="title-block">
+      <h1>Nova Scotia <em>Heat Vulnerability</em> Index</h1>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div class="left-panel">
+
+      <div>
+        <div class="section-label">Select community</div>
+        <div class="combo">
+          <input id="communitySearch" type="text" placeholder="Search 54 community clusters…" autocomplete="off" />
+          <div class="combo-list" id="communityList"></div>
+        </div>
+      </div>
+
+      <div class="now-viewing" id="nowViewing"></div>
+
+      <div class="dial-row">
+        <div class="dial-col">
+          <div class="section-label">Index selector</div>
+          <div class="dial-panel">
+            <div class="sunburst-wrap">
+              <svg id="sunburst1" viewBox="0 0 600 600"></svg>
+              <div class="sunburst-hint">Fixed hierarchy · click to change the map layer</div>
+            </div>
+          </div>
+        </div>
+        <div class="dial-col">
+          <div class="section-label">Community breakdown</div>
+          <div class="dial-panel">
+            <div class="sunburst-wrap">
+              <svg id="sunburst2" viewBox="0 0 600 600"></svg>
+              <div class="sunburst-hint">Wedge width = share of its orbit (totals 100)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ring-legend" id="ringLegend"></div>
+
+      <footer class="note">
+        Boundaries and index values are real: dissolved from your 301-polygon community-environment shapefile up to the 54 community clusters in your working data, joined on cluster name. Since the shapefile had no explicit environment→cluster crosswalk field, each of the 301 source polygons was assigned to its nearest cluster hub (by representative point), so cluster edges are a close reconstruction rather than an official boundary file — flag any cluster whose shape looks off and I can adjust the seed point or hand-fix it.
+      </footer>
+
+    </div>
+
+    <div class="right-panel">
+      <div id="map"></div>
+      <div class="map-topbar">
+        <div class="map-badge">Showing <b id="mapBadgeIndex">Overall HVI</b> · <span id="mapBadgeCommunity">Province‑wide</span></div>
+        <div class="map-legend">
+          <div class="lg-title" id="mapLegendTitle">Overall HVI</div>
+          <div class="legend-scale"></div>
+          <div class="legend-labels"><span>0</span><span>50</span><span>100</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="sun-tooltip" id="sunTooltip"></div>
+
+<script>
+/* ============================== DATA (real) ============================== */
+
+const RINGS = [
+  { id:1, label:'Exposure',            color:'#E63946', light:'#FBE1E3' },
+  { id:2, label:'Sensitivity',         color:'#F0A202', light:'#FCEBC8' },
+  { id:3, label:'Adaptive Capacity',   color:'#3F9142', light:'#E2F0E1' },
+];
+
+const INDICATORS = [
+  // ring 1 — Exposure (innermost, red)
+  { key:'heatWave',          label:'Heatwave\nScore',    full:'Heatwave Score',              ring:1 },
+  { key:'airQualityPM25',    label:'Air Quality\nPM2.5', full:'Air Quality — PM2.5',          ring:1 },
+  { key:'airQualityNO2',     label:'Air Quality\nNO2',   full:'Air Quality — NO2',            ring:1 },
+  // ring 2 — Sensitivity (middle, orange)
+  { key:'age9',              label:'Age <9\nyrs',        full:'Age under 9 years',            ring:2 },
+  { key:'age65',             label:'Age >65\nyrs',       full:'Age over 65 years',             ring:2 },
+  { key:'indigenous',        label:'Indigenous',         full:'Indigenous',                    ring:2 },
+  { key:'africanNS',         label:'African\nNS',        full:'African Nova Scotian',           ring:2 },
+  { key:'activeTransport',   label:'Active\nTransport',  full:'Active Transport',              ring:2 },
+  { key:'outdoorWorkers',    label:'Outdoor\nWorkers',   full:'Outdoor Workers',               ring:2 },
+  { key:'chronicConditions', label:'Chronic\nConditions',full:'Chronic Conditions',            ring:2 },
+  // ring 3 — Adaptive Capacity (outermost, green)
+  { key:'emsResponse',       label:'EHS\nResponse',      full:'Emergency Health Services Response', ring:3 },
+  { key:'materialSecurity',  label:'Material\nSecurity', full:'Material Security',             ring:3 },
+  { key:'socialConnect',     label:'Social\nConnectivity',full:'Social Connectivity',          ring:3 },
+  { key:'socialDiversity',   label:'Social\nDiversity',  full:'Social Diversity',               ring:3 },
+  { key:'greenSpace',        label:'Green\nSpace',       full:'Green Space',                   ring:3 },
+  { key:'blueSpace',         label:'Blue\nSpace',        full:'Blue Space',                     ring:3 },
+];
+
+let communityData = [];
+let boundaries = null;
+
+async function init(){
+
+const dataById = {};
+communityData.forEach(c=>{ dataById[c.id] = c; });
+
+/* ============================== STATE ============================== */
+
+const state = { selectedIndex: 'overall', selectedCommunity: null };
+
+function getValue(c, idx){ return idx==='overall' ? c.overall : c.vals[idx]; }
+function indexLabel(idx){ return idx==='overall' ? 'Overall HVI' : INDICATORS.find(i=>i.key===idx).full; }
+
+const colorScale = d3.scaleLinear().domain([0,50,100]).range(['#2E86AB','#E08E00','#C1121F']).clamp(true);
+
+/* ============================== COMBOBOX ============================== */
+
+const searchInput = document.getElementById('communitySearch');
+const listEl = document.getElementById('communityList');
+const PROVINCE_NAME = 'Nova Scotia';
+
+function provinceOverall(idx){
+  return Math.round((communityData.reduce((s,x)=>s+getValue(x,idx),0)/communityData.length)*10)/10;
+}
+
+function renderList(filter){
+  const f = (filter||'').toLowerCase();
+  const items = communityData.filter(c=>c.name.toLowerCase().includes(f));
+  const showProvince = PROVINCE_NAME.toLowerCase().includes(f);
+  const provinceHtml = showProvince ? (()=>{
+    const sel = !state.selectedCommunity ? ' selected':'';
+    return `<div class="combo-item${sel}" data-id="province" style="font-weight:600;border-bottom:1px solid var(--line);">${PROVINCE_NAME} <span style="font-weight:400;color:var(--text-dim)">(province‑wide)</span><span class="region">HVI ${provinceOverall('overall')}</span></div>`;
+  })() : '';
+  const restHtml = items.map(c=>{
+    const sel = state.selectedCommunity && state.selectedCommunity.id===c.id ? ' selected':'';
+    return `<div class="combo-item${sel}" data-id="${c.id}">${c.name}<span class="region">HVI ${c.overall}</span></div>`;
+  }).join('');
+  listEl.innerHTML = (provinceHtml + restHtml) || `<div class="combo-item" style="opacity:.5">No matches</div>`;
+}
+renderList('');
+searchInput.value = PROVINCE_NAME;
+
+searchInput.addEventListener('focus',()=>{ listEl.classList.add('open'); });
+searchInput.addEventListener('input',e=>{ renderList(e.target.value); listEl.classList.add('open'); });
+document.addEventListener('click',e=>{ if(!e.target.closest('.combo')) listEl.classList.remove('open'); });
+listEl.addEventListener('click',e=>{
+  const item = e.target.closest('.combo-item');
+  if(!item || !item.dataset.id) return;
+  if(item.dataset.id === 'province'){
+    selectProvince();
+    searchInput.value = PROVINCE_NAME;
+    listEl.classList.remove('open');
+    return;
+  }
+  const c = dataById[Number(item.dataset.id)];
+  selectCommunity(c);
+  searchInput.value = c.name;
+  listEl.classList.remove('open');
+});
+
+/* ============================== NOW VIEWING PANEL ============================== */
+
+function renderNowViewing(){
+  const c = state.selectedCommunity;
+  const idx = state.selectedIndex;
+  const val = c ? getValue(c, idx) : provinceOverall(idx);
+  const col = colorScale(val);
+  const el = document.getElementById('nowViewing');
+  el.innerHTML = `
+    <div class="community-name">${c ? c.name : 'Nova Scotia — province average'}</div>
+    <div class="index-row">
+      <span class="index-name">${indexLabel(idx)}</span>
+      <span class="index-value" style="color:${col}">${val}</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill" style="width:${val}%;background:${col}"></div></div>
+  `;
+  document.getElementById('mapBadgeIndex').textContent = indexLabel(idx);
+  document.getElementById('mapBadgeCommunity').textContent = c ? c.name : 'Province‑wide';
+  document.getElementById('mapLegendTitle').textContent = indexLabel(idx);
+}
+
+/* ============================== SHARED HELPERS ============================== */
+
+const SIZE = 600, CX = SIZE/2, CY = SIZE/2;
+const R1 = 78;
+const R_A0 = 82,  R_A1 = 150;
+const R_B0 = 154, R_B1 = 230;
+const R_C0 = 234, R_C1 = 296;
+
+function valFor(key){
+  const c = state.selectedCommunity;
+  if(key==='overall') return c ? c.overall : provinceOverall('overall');
+  return c ? getValue(c,key) : provinceOverall(key);
+}
+
+const tip = document.getElementById('sunTooltip');
+function showTip(e,label,val,ringLabel,extra){
+  const valLine = (val===null || val===undefined) ? '' : `<br><span class="t-val">${val} / 100</span>`;
+  tip.innerHTML = `<div class="t-cat">${ringLabel}</div>${label}${valLine}${extra?('<br>'+extra):''}`;
+  tip.style.opacity=1; moveTip(e);
+}
+function moveTip(e){ tip.style.left = (e.clientX+14)+'px'; tip.style.top = (e.clientY+14)+'px'; }
+function hideTip(){ tip.style.opacity=0; }
+
+/* ============================== DOUGHNUT 1 — fixed selector ============================== */
+
+const svg1 = d3.select('#sunburst1');
+const g1Root = svg1.append('g');
+
+function pieEqual(ringId){
+  const items = INDICATORS.filter(i=>i.ring===ringId);
+  const pie = d3.pie().value(1).sort(null).padAngle(0.014);
+  return pie(items).map(p=>({ ...p, ind:p.data }));
+}
+const eq1 = pieEqual(1), eq2 = pieEqual(2), eq3 = pieEqual(3);
+
+function buildFixedRing(arcsData, r0, r1){
+  const arcGen = d3.arc().innerRadius(r0).outerRadius(r1).cornerRadius(2);
+  const g = g1Root.append('g').attr('transform',`translate(${CX},${CY})`);
+  const wedge = g.selectAll('path').data(arcsData, d=>d.ind.key).join('path')
+    .attr('data-key', d=>d.ind.key).style('cursor','pointer').attr('d', arcGen)
+    .on('mouseenter', (e,d)=>showTip(e, d.ind.full, null, RINGS.find(r=>r.id===d.ind.ring).label))
+    .on('mousemove', e=>moveTip(e)).on('mouseleave', hideTip)
+    .on('click', (e,d)=>selectIndex(d.ind.key));
+  const labels = g.selectAll('text').data(arcsData, d=>d.ind.key).join('text')
+    .attr('transform', d=>{ const [x,y] = arcGen.centroid(d); return `translate(${x},${y})`; })
+    .attr('text-anchor','middle').style('pointer-events','none')
+    .style('font-family','var(--font-body)').style('font-weight',600);
+  labels.each(function(d){
+    const lines = d.ind.label.split('\n');
+    const sel = d3.select(this); sel.selectAll('tspan').remove();
+    const fs = (r1-r0) > 60 ? 12.5 : 11.5; sel.attr('font-size', fs);
+    const startDy = -((lines.length-1) * (fs+2))/2;
+    lines.forEach((ln,i)=>{ sel.append('tspan').attr('x',0).attr('dy', i===0? startDy : (fs+2)).text(ln); });
+  });
+  return { wedge, labels, arcGen };
+}
+const F1 = buildFixedRing(eq1, R_A0, R_A1);
+const F2 = buildFixedRing(eq2, R_B0, R_B1);
+const F3 = buildFixedRing(eq3, R_C0, R_C1);
+
+const gc1 = g1Root.append('g').attr('transform',`translate(${CX},${CY})`);
+gc1.append('circle').attr('r', R1).style('cursor','pointer')
+  .on('mouseenter', e=>showTip(e,'Overall HVI', null, 'Composite index'))
+  .on('mousemove', e=>moveTip(e)).on('mouseleave', hideTip)
+  .on('click', ()=>selectIndex('overall'));
+const cLabel1 = gc1.append('text').attr('text-anchor','middle').style('pointer-events','none')
+  .style('font-family','var(--font-display)').style('font-weight',600).attr('font-size', 17);
+['Nova Scotia','Heat','Vulnerability','Index'].forEach((ln,i)=>{
+  cLabel1.append('tspan').attr('x',0).attr('dy', i===0? -28 : 21).text(ln);
+});
+
+function renderDoughnut1(){
+  [[F1,1],[F2,2],[F3,3]].forEach(([grp,ringId])=>{
+    const r = RINGS.find(x=>x.id===ringId);
+    grp.wedge
+      .attr('fill', d=> d.ind.key===state.selectedIndex ? r.color : r.light)
+      .attr('stroke', d=> d.ind.key===state.selectedIndex ? '#ffffff' : 'rgba(255,255,255,0.8)')
+      .attr('stroke-width', d=> d.ind.key===state.selectedIndex ? 2.5 : 1)
+      .attr('opacity', 1);
+    grp.labels.attr('fill', d=> d.ind.key===state.selectedIndex ? '#ffffff' : r.color);
+  });
+  gc1.select('circle')
+    .attr('fill', state.selectedIndex==='overall' ? 'var(--select)' : '#FBF9F3')
+    .attr('stroke', state.selectedIndex==='overall' ? '#ffffff' : 'var(--line)')
+    .attr('stroke-width', state.selectedIndex==='overall' ? 2.5 : 1.5);
+  cLabel1.attr('fill', state.selectedIndex==='overall' ? '#ffffff' : 'var(--ink)');
+}
+
+/* ============================== DOUGHNUT 2 — data-proportional, with numbers ============================== */
+
+const svg2 = d3.select('#sunburst2');
+const g2Root = svg2.append('g');
+
+function buildProportionalRing(ringId, r0, r1){
+  const items = INDICATORS.filter(i=>i.ring===ringId);
+  const g = g2Root.append('g').attr('transform',`translate(${CX},${CY})`);
+  const arcGen = d3.arc().innerRadius(r0).outerRadius(r1).cornerRadius(2);
+  return { items, g, arcGen, r0, r1 };
+}
+const P1 = buildProportionalRing(1, R_A0, R_A1);
+const P2 = buildProportionalRing(2, R_B0, R_B1);
+const P3 = buildProportionalRing(3, R_C0, R_C1);
+
+const gc2 = g2Root.append('g').attr('transform',`translate(${CX},${CY})`);
+gc2.append('circle').attr('r', R1).style('cursor','pointer')
+  .on('mouseenter', e=>showTip(e,'Overall HVI', valFor('overall'), 'Composite index'))
+  .on('mousemove', e=>moveTip(e)).on('mouseleave', hideTip)
+  .on('click', ()=>selectIndex('overall'));
+const cName2 = gc2.append('text').attr('text-anchor','middle').attr('y',-14).style('pointer-events','none')
+  .style('font-family','var(--font-display)').style('font-weight',600).attr('font-size', 15);
+const cSub2 = gc2.append('text').attr('text-anchor','middle').attr('y',8).style('pointer-events','none')
+  .style('font-family','var(--font-body)').attr('font-size', 10.5);
+const cValue2 = gc2.append('text').attr('text-anchor','middle').attr('y',34).style('pointer-events','none')
+  .style('font-family','var(--font-mono)').style('font-weight',700).attr('font-size', 22);
+
+function renderDoughnutRingProportional(P, ringId){
+  const r = RINGS.find(x=>x.id===ringId);
+  const pie = d3.pie().value(d=>Math.max(0.6, valFor(d.key))).sort(null).padAngle(0.014);
+  const arcsData = pie(P.items).map(p=>({ ...p, ind:p.data }));
+  const total = P.items.reduce((s,i)=>s+valFor(i.key),0);
+
+  const wedge = P.g.selectAll('path').data(arcsData, d=>d.ind.key).join('path')
+    .attr('data-key', d=>d.ind.key).style('cursor','pointer').attr('d', P.arcGen)
+    .attr('fill', d=>{
+      const v = valFor(d.ind.key);
+      return d.ind.key===state.selectedIndex ? r.color : d3.interpolateRgb(r.light, r.color)(0.15 + 0.85*(v/100));
+    })
+    .attr('stroke', d=> d.ind.key===state.selectedIndex ? '#ffffff' : 'rgba(255,255,255,0.55)')
+    .attr('stroke-width', d=> d.ind.key===state.selectedIndex ? 2.5 : 1)
+    .on('mouseenter', (e,d)=>{
+      const v = valFor(d.ind.key);
+      const share = total>0 ? Math.round((v/total)*100) : 0;
+      showTip(e, d.ind.full, v, r.label, `${share}% of this orbit`);
+    })
+    .on('mousemove', e=>moveTip(e)).on('mouseleave', hideTip)
+    .on('click', (e,d)=>selectIndex(d.ind.key));
+
+  P.g.selectAll('text').data(arcsData, d=>d.ind.key).join('text')
+    .attr('transform', d=>{ const [x,y] = P.arcGen.centroid(d); return `translate(${x},${y})`; })
+    .attr('text-anchor','middle').style('pointer-events','none')
+    .style('font-family','var(--font-mono)').style('font-weight',700)
+    .attr('font-size', d=> (d.endAngle-d.startAngle) > 0.35 ? 14 : 10)
+    .attr('fill', d=>{
+      const v = valFor(d.ind.key);
+      const isSel = d.ind.key===state.selectedIndex;
+      if(isSel) return '#ffffff';
+      return v>55 ? '#ffffff' : '#2A1B0C';
+    })
+    .text(d=> (d.endAngle-d.startAngle) > 0.12 ? Math.round(valFor(d.ind.key)) : '');
+}
+
+function renderDoughnut2(){
+  renderDoughnutRingProportional(P1,1);
+  renderDoughnutRingProportional(P2,2);
+  renderDoughnutRingProportional(P3,3);
+  const overallVal = valFor('overall');
+  const c = state.selectedCommunity;
+  gc2.select('circle')
+    .attr('fill', state.selectedIndex==='overall' ? colorScale(overallVal) : '#FBF9F3')
+    .attr('stroke', state.selectedIndex==='overall' ? '#ffffff' : 'var(--line)')
+    .attr('stroke-width', state.selectedIndex==='overall' ? 2.5 : 1.5);
+  const onDark = state.selectedIndex==='overall';
+  cName2.text(c ? c.name : 'Province avg').attr('fill', onDark ? '#ffffff' : 'var(--ink)');
+  cSub2.text('Overall HVI').attr('fill', onDark ? 'rgba(255,255,255,0.85)' : 'var(--text-dim)');
+  cValue2.text(overallVal).attr('fill', onDark ? '#ffffff' : colorScale(overallVal));
+}
+
+document.getElementById('ringLegend').innerHTML = RINGS.map(r=>
+  `<div class="ring-chip"><span class="ring-dot" style="background:${r.color}"></span>${r.label}</div>`
+).join('');
+
+/* ============================== MAP (real polygons) ============================== */
+
+const map = L.map('map',{ zoomControl:true, attributionControl:true });
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+  attribution: 'Tiles &copy; Esri', maxZoom:19
+}).addTo(map);
+
+let geoLayer = null;
+let selectedLayer = null;
+
+function styleFor(feature){
+  const c = dataById[feature.properties.id];
+  const v = c ? getValue(c, state.selectedIndex) : 0;
+  const isSel = state.selectedCommunity && state.selectedCommunity.id === feature.properties.id;
+  return {
+    fillColor: colorScale(v),
+    fillOpacity: isSel ? 0.95 : 0.82,
+    color: isSel ? '#0C8C7D' : '#ffffff',
+    weight: isSel ? 3.5 : 1,
+  };
+}
+
+geoLayer = L.geoJSON(boundaries, {
+  style: styleFor,
+  onEachFeature: (feature, layer) => {
+    const c = dataById[feature.properties.id];
+    if(!c) return;
+    layer.bindTooltip(`<b>${c.name}</b>`, {sticky:true, opacity:0.95});
+    layer.on('mouseover', ()=>{ if(!(state.selectedCommunity && state.selectedCommunity.id===c.id)) layer.setStyle({weight:2.5, color:'#E08E00'}); });
+    layer.on('mouseout', ()=>{ geoLayer.resetStyle(layer); layer.setStyle(styleFor(feature)); });
+    layer.on('click', ()=>{ selectCommunity(c); searchInput.value = c.name; });
+  }
+}).addTo(map);
+
+// force an explicit style pass so the default Overall HVI choropleth is
+// guaranteed to paint immediately, before any community is selected
+geoLayer.eachLayer(layer => layer.setStyle(styleFor(layer.feature)));
+
+map.invalidateSize();
+map.fitBounds(geoLayer.getBounds(), {padding:[24,24]});
+const PROVINCE_BOUNDS = geoLayer.getBounds();
+map.setMaxBounds(PROVINCE_BOUNDS.pad(0.4));
+
+// re-fit once the layout/fonts have fully settled, in case the map div's
+// size changes after first paint (grid layout, webfont load, etc.)
+window.addEventListener('load', ()=>{
+  map.invalidateSize();
+  map.fitBounds(PROVINCE_BOUNDS, {padding:[24,24]});
+});
+setTimeout(()=>{
+  map.invalidateSize();
+  map.fitBounds(PROVINCE_BOUNDS, {padding:[24,24]});
+}, 300);
+
+function renderMap(){
+  geoLayer.eachLayer(layer=>{
+    layer.setStyle(styleFor(layer.feature));
+    if(state.selectedCommunity && layer.feature.properties.id === state.selectedCommunity.id) layer.bringToFront();
+  });
+}
+
+/* ============================== ACTIONS ============================== */
+
+function renderAll(){ renderNowViewing(); renderDoughnut1(); renderDoughnut2(); renderMap(); }
+
+function selectCommunity(c){
+  state.selectedCommunity = c;
+  renderAll(); renderList(searchInput.value);
+}
+function selectProvince(){
+  state.selectedCommunity = null;
+  renderAll(); renderList(searchInput.value);
+}
+function selectIndex(idx){
+  state.selectedIndex = idx;
+  renderAll();
+}
+
+}
+
+const loadingMsg = document.createElement('div');
+loadingMsg.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#F7F4EC;color:#57696B;font-family:IBM Plex Sans,sans-serif;font-size:14px;z-index:9999;';
+loadingMsg.textContent = 'Loading community data\u2026';
+document.body.appendChild(loadingMsg);
+
+Promise.all([
+  fetch('community_data.json').then(r => { if(!r.ok) throw new Error('community_data.json: HTTP '+r.status); return r.json(); }),
+  fetch('boundaries.geojson').then(r => { if(!r.ok) throw new Error('boundaries.geojson: HTTP '+r.status); return r.json(); })
+]).then(([cd, bd]) => {
+  communityData = cd;
+  boundaries = bd;
+  loadingMsg.remove();
+  init();
+}).catch(err => {
+  loadingMsg.innerHTML = '<div style="max-width:480px;text-align:center;padding:24px;">' +
+    '<b>Could not load community_data.json / boundaries.geojson.</b><br><br>' +
+    'Make sure both files are saved in the same folder as this HTML file, and that the folder is opened through a local web server (not double-clicked as a file:// URL \u2014 browsers block that for security).<br><br>' +
+    '<span style="font-family:IBM Plex Mono,monospace;font-size:12px;color:#93A19F;">' + err.message + '</span></div>';
+  console.error(err);
+});
+
+</script>
+</body>
+</html>
