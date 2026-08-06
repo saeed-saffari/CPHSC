@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nova Scotia Heat Vulnerability Index</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Nunito+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
@@ -26,8 +26,8 @@
     --ring2:#F0A202; --ring2-light:#FCEBC8;
     --ring3:#3F9142; --ring3-light:#E2F0E1;
     --radius:14px;
-    --font-display:'Montserrat', system-ui, sans-serif;
-    --font-body:'Nunito Sans', system-ui, sans-serif;
+    --font-display:'Fraunces', Georgia, serif;
+    --font-body:'IBM Plex Sans', system-ui, sans-serif;
     --font-mono:'IBM Plex Mono', ui-monospace, monospace;
     --shadow: 0 2px 10px rgba(28,43,46,0.06);
   }
@@ -108,18 +108,11 @@
   .now-viewing .bar-track{height:4px;border-radius:4px;background:var(--line);margin-top:6px;overflow:hidden;}
   .now-viewing .bar-fill{height:100%;border-radius:4px;}
 
-  .ring-summary{display:flex;gap:8px;}
-  .ring-summary-box{
-    flex:1;min-width:0;background:var(--bg-panel);border:1px solid var(--line);
-    border-top:3px solid var(--box-color, var(--line));border-radius:10px;
-    padding:8px 6px;text-align:center;box-shadow:var(--shadow);
-  }
-  .ring-summary-box .rs-label{font-size:9.5px;color:var(--text-mid);letter-spacing:0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .ring-summary-box .rs-value{font-family:var(--font-mono);font-weight:700;font-size:20px;margin-top:2px;}
-
+  .dial-row{display:flex;flex-direction:column;gap:12px;}
+  .dial-row .dial-col{flex:1;min-width:0;}
   .dial-panel{background:var(--bg-panel);border:1px solid var(--line);border-radius:14px;padding:8px 6px 6px;box-shadow:var(--shadow);}
   .sunburst-wrap{display:flex;flex-direction:column;align-items:center;}
-  .sunburst-wrap svg{width:min(100%, 640px, 62vh);height:auto;}
+  .sunburst-wrap svg{width:100%;max-width:320px;height:auto;}
   .sunburst-hint{font-size:9.5px;color:var(--text-dim);text-align:center;margin-top:4px;line-height:1.3;}
   .sun-tooltip{
     position:fixed;pointer-events:none;z-index:100;
@@ -131,7 +124,7 @@
   .sun-tooltip .t-cat{color:#B9C4C2;font-size:10px;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:2px;}
   .sun-tooltip .t-val{font-family:var(--font-mono);color:var(--heat-mid);}
 
-  .legend-scale{height:10px;border-radius:5px;background:linear-gradient(90deg,#ffffcc,#fd8d3c,#800026);}
+  .legend-scale{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--heat-lo),var(--heat-mid),var(--heat-hi));}
   .legend-labels{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:5px;}
   .ring-legend{display:flex;flex-wrap:wrap;gap:10px;padding:2px 2px;}
   .ring-chip{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--text-mid);}
@@ -139,11 +132,17 @@
 
   footer.note{ font-size:9.5px;color:var(--text-dim);line-height:1.4; border-top:1px solid var(--line);padding-top:8px;margin-top:auto; }
 
-  .map-legend-corner{
-    position:absolute;bottom:16px;right:16px;z-index:20;
+  .map-topbar{
+    position:absolute;top:16px;left:16px;right:16px;z-index:20;
+    display:flex;justify-content:space-between;align-items:flex-start;gap:12px;pointer-events:none;
   }
+  .map-badge{
+    pointer-events:auto; background:rgba(255,255,255,0.92);backdrop-filter:blur(6px);
+    border:1px solid var(--line);border-radius:10px; padding:9px 14px;font-size:12.5px;color:var(--ink);box-shadow:var(--shadow);
+  }
+  .map-badge b{color:var(--heat-mid);font-weight:600;}
   .map-legend{
-    background:rgba(255,255,255,0.92);backdrop-filter:blur(6px);
+    pointer-events:auto; background:rgba(255,255,255,0.92);backdrop-filter:blur(6px);
     border:1px solid var(--line);border-radius:10px; padding:10px 14px;min-width:200px;box-shadow:var(--shadow);
   }
   .map-legend .lg-title{font-size:11px;color:var(--text-mid);margin-bottom:6px;}
@@ -179,25 +178,39 @@
 
       <div class="now-viewing" id="nowViewing"></div>
 
-      <div class="ring-summary" id="ringSummary"></div>
-
-      <div>
-        <div class="section-label">Heat vulnerability index</div>
-        <div class="dial-panel">
-          <div class="sunburst-wrap">
-            <svg id="sunburst" viewBox="0 0 600 600"></svg>
-            <div class="sunburst-hint">Wedge width = share of its orbit (totals 100) · click any wedge to change the map layer · hover for details</div>
+      <div class="dial-row">
+        <div class="dial-col">
+          <div class="section-label">Index selector</div>
+          <div class="dial-panel">
+            <div class="sunburst-wrap">
+              <svg id="sunburst1" viewBox="0 0 600 600"></svg>
+              <div class="sunburst-hint">Fixed hierarchy · click to change the map layer</div>
+            </div>
+          </div>
+        </div>
+        <div class="dial-col">
+          <div class="section-label">Community breakdown</div>
+          <div class="dial-panel">
+            <div class="sunburst-wrap">
+              <svg id="sunburst2" viewBox="0 0 600 600"></svg>
+              <div class="sunburst-hint">Wedge width = share of its orbit (totals 100)</div>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="ring-legend" id="ringLegend"></div>
 
+      <footer class="note">
+        Boundaries and index values are real: dissolved from your 301-polygon community-environment shapefile up to the 54 community clusters in your working data, joined on cluster name. Since the shapefile had no explicit environment→cluster crosswalk field, each of the 301 source polygons was assigned to its nearest cluster hub (by representative point), so cluster edges are a close reconstruction rather than an official boundary file — flag any cluster whose shape looks off and I can adjust the seed point or hand-fix it.
+      </footer>
+
     </div>
 
     <div class="right-panel">
       <div id="map"></div>
-      <div class="map-legend-corner">
+      <div class="map-topbar">
+        <div class="map-badge">Showing <b id="mapBadgeIndex">Overall HVI</b> · <span id="mapBadgeCommunity">Province‑wide</span></div>
         <div class="map-legend">
           <div class="lg-title" id="mapLegendTitle">Overall HVI</div>
           <div class="legend-scale"></div>
@@ -257,7 +270,7 @@ const state = { selectedIndex: 'overall', selectedCommunity: null };
 function getValue(c, idx){ return idx==='overall' ? c.overall : c.vals[idx]; }
 function indexLabel(idx){ return idx==='overall' ? 'Overall HVI' : INDICATORS.find(i=>i.key===idx).full; }
 
-const colorScale = d3.scaleSequential(d3.interpolateYlOrRd).domain([0,100]);
+const colorScale = d3.scaleLinear().domain([0,50,100]).range(['#2E86AB','#E08E00','#C1121F']).clamp(true);
 
 /* ============================== COMBOBOX ============================== */
 
@@ -271,9 +284,7 @@ function provinceOverall(idx){
 
 function renderList(filter){
   const f = (filter||'').toLowerCase();
-  const items = communityData
-    .filter(c=>c.name.toLowerCase().includes(f))
-    .sort((a,b)=>a.name.localeCompare(b.name));
+  const items = communityData.filter(c=>c.name.toLowerCase().includes(f));
   const showProvince = PROVINCE_NAME.toLowerCase().includes(f);
   const provinceHtml = showProvince ? (()=>{
     const sel = !state.selectedCommunity ? ' selected':'';
@@ -288,7 +299,7 @@ function renderList(filter){
 renderList('');
 searchInput.value = PROVINCE_NAME;
 
-searchInput.addEventListener('focus',()=>{ renderList(''); listEl.classList.add('open'); });
+searchInput.addEventListener('focus',()=>{ listEl.classList.add('open'); });
 searchInput.addEventListener('input',e=>{ renderList(e.target.value); listEl.classList.add('open'); });
 document.addEventListener('click',e=>{ if(!e.target.closest('.combo')) listEl.classList.remove('open'); });
 listEl.addEventListener('click',e=>{
@@ -322,24 +333,9 @@ function renderNowViewing(){
     </div>
     <div class="bar-track"><div class="bar-fill" style="width:${val}%;background:${col}"></div></div>
   `;
+  document.getElementById('mapBadgeIndex').textContent = indexLabel(idx);
+  document.getElementById('mapBadgeCommunity').textContent = c ? c.name : 'Province‑wide';
   document.getElementById('mapLegendTitle').textContent = indexLabel(idx);
-}
-
-function ringAverage(ringId){
-  const items = INDICATORS.filter(i=>i.ring===ringId);
-  const sum = items.reduce((s,i)=>s+valFor(i.key),0);
-  return Math.round((sum/items.length)*10)/10;
-}
-
-function renderRingSummary(){
-  const el = document.getElementById('ringSummary');
-  el.innerHTML = RINGS.map(r=>{
-    const v = ringAverage(r.id);
-    return `<div class="ring-summary-box" style="--box-color:${r.color}">
-      <div class="rs-label">${r.label}</div>
-      <div class="rs-value" style="color:${colorScale(v)}">${v}</div>
-    </div>`;
-  }).join('');
 }
 
 /* ============================== SHARED HELPERS ============================== */
@@ -365,14 +361,79 @@ function showTip(e,label,val,ringLabel,extra){
 function moveTip(e){ tip.style.left = (e.clientX+14)+'px'; tip.style.top = (e.clientY+14)+'px'; }
 function hideTip(){ tip.style.opacity=0; }
 
-/* ============================== DOUGHNUT — merged selector + value display ============================== */
+/* ============================== DOUGHNUT 1 — fixed selector ============================== */
 
-const svg = d3.select('#sunburst');
-const gRoot = svg.append('g');
+const svg1 = d3.select('#sunburst1');
+const g1Root = svg1.append('g');
+
+function pieEqual(ringId){
+  const items = INDICATORS.filter(i=>i.ring===ringId);
+  const pie = d3.pie().value(1).sort(null).padAngle(0.014);
+  return pie(items).map(p=>({ ...p, ind:p.data }));
+}
+const eq1 = pieEqual(1), eq2 = pieEqual(2), eq3 = pieEqual(3);
+
+function buildFixedRing(arcsData, r0, r1){
+  const arcGen = d3.arc().innerRadius(r0).outerRadius(r1).cornerRadius(2);
+  const g = g1Root.append('g').attr('transform',`translate(${CX},${CY})`);
+  const wedge = g.selectAll('path').data(arcsData, d=>d.ind.key).join('path')
+    .attr('data-key', d=>d.ind.key).style('cursor','pointer').attr('d', arcGen)
+    .on('mouseenter', (e,d)=>showTip(e, d.ind.full, null, RINGS.find(r=>r.id===d.ind.ring).label))
+    .on('mousemove', e=>moveTip(e)).on('mouseleave', hideTip)
+    .on('click', (e,d)=>selectIndex(d.ind.key));
+  const labels = g.selectAll('text').data(arcsData, d=>d.ind.key).join('text')
+    .attr('transform', d=>{ const [x,y] = arcGen.centroid(d); return `translate(${x},${y})`; })
+    .attr('text-anchor','middle').style('pointer-events','none')
+    .style('font-family','var(--font-body)').style('font-weight',600);
+  labels.each(function(d){
+    const lines = d.ind.label.split('\n');
+    const sel = d3.select(this); sel.selectAll('tspan').remove();
+    const fs = (r1-r0) > 60 ? 12.5 : 11.5; sel.attr('font-size', fs);
+    const startDy = -((lines.length-1) * (fs+2))/2;
+    lines.forEach((ln,i)=>{ sel.append('tspan').attr('x',0).attr('dy', i===0? startDy : (fs+2)).text(ln); });
+  });
+  return { wedge, labels, arcGen };
+}
+const F1 = buildFixedRing(eq1, R_A0, R_A1);
+const F2 = buildFixedRing(eq2, R_B0, R_B1);
+const F3 = buildFixedRing(eq3, R_C0, R_C1);
+
+const gc1 = g1Root.append('g').attr('transform',`translate(${CX},${CY})`);
+gc1.append('circle').attr('r', R1).style('cursor','pointer')
+  .on('mouseenter', e=>showTip(e,'Overall HVI', null, 'Composite index'))
+  .on('mousemove', e=>moveTip(e)).on('mouseleave', hideTip)
+  .on('click', ()=>selectIndex('overall'));
+const cLabel1 = gc1.append('text').attr('text-anchor','middle').style('pointer-events','none')
+  .style('font-family','var(--font-display)').style('font-weight',600).attr('font-size', 17);
+['Nova Scotia','Heat','Vulnerability','Index'].forEach((ln,i)=>{
+  cLabel1.append('tspan').attr('x',0).attr('dy', i===0? -28 : 21).text(ln);
+});
+
+function renderDoughnut1(){
+  [[F1,1],[F2,2],[F3,3]].forEach(([grp,ringId])=>{
+    const r = RINGS.find(x=>x.id===ringId);
+    grp.wedge
+      .attr('fill', d=> d.ind.key===state.selectedIndex ? r.color : r.light)
+      .attr('stroke', d=> d.ind.key===state.selectedIndex ? '#ffffff' : 'rgba(255,255,255,0.8)')
+      .attr('stroke-width', d=> d.ind.key===state.selectedIndex ? 2.5 : 1)
+      .attr('opacity', 1);
+    grp.labels.attr('fill', d=> d.ind.key===state.selectedIndex ? '#ffffff' : r.color);
+  });
+  gc1.select('circle')
+    .attr('fill', state.selectedIndex==='overall' ? 'var(--select)' : '#FBF9F3')
+    .attr('stroke', state.selectedIndex==='overall' ? '#ffffff' : 'var(--line)')
+    .attr('stroke-width', state.selectedIndex==='overall' ? 2.5 : 1.5);
+  cLabel1.attr('fill', state.selectedIndex==='overall' ? '#ffffff' : 'var(--ink)');
+}
+
+/* ============================== DOUGHNUT 2 — data-proportional, with numbers ============================== */
+
+const svg2 = d3.select('#sunburst2');
+const g2Root = svg2.append('g');
 
 function buildProportionalRing(ringId, r0, r1){
   const items = INDICATORS.filter(i=>i.ring===ringId);
-  const g = gRoot.append('g').attr('transform',`translate(${CX},${CY})`);
+  const g = g2Root.append('g').attr('transform',`translate(${CX},${CY})`);
   const arcGen = d3.arc().innerRadius(r0).outerRadius(r1).cornerRadius(2);
   return { items, g, arcGen, r0, r1 };
 }
@@ -380,17 +441,17 @@ const P1 = buildProportionalRing(1, R_A0, R_A1);
 const P2 = buildProportionalRing(2, R_B0, R_B1);
 const P3 = buildProportionalRing(3, R_C0, R_C1);
 
-const gc = gRoot.append('g').attr('transform',`translate(${CX},${CY})`);
-gc.append('circle').attr('r', R1).style('cursor','pointer')
+const gc2 = g2Root.append('g').attr('transform',`translate(${CX},${CY})`);
+gc2.append('circle').attr('r', R1).style('cursor','pointer')
   .on('mouseenter', e=>showTip(e,'Overall HVI', valFor('overall'), 'Composite index'))
   .on('mousemove', e=>moveTip(e)).on('mouseleave', hideTip)
   .on('click', ()=>selectIndex('overall'));
-const cName = gc.append('text').attr('text-anchor','middle').attr('y',-16).style('pointer-events','none')
-  .style('font-family','var(--font-display)').style('font-weight',600).attr('font-size', 17);
-const cSub = gc.append('text').attr('text-anchor','middle').attr('y',10).style('pointer-events','none')
-  .style('font-family','var(--font-body)').attr('font-size', 11.5);
-const cValue = gc.append('text').attr('text-anchor','middle').attr('y',40).style('pointer-events','none')
-  .style('font-family','var(--font-mono)').style('font-weight',700).attr('font-size', 26);
+const cName2 = gc2.append('text').attr('text-anchor','middle').attr('y',-14).style('pointer-events','none')
+  .style('font-family','var(--font-display)').style('font-weight',600).attr('font-size', 15);
+const cSub2 = gc2.append('text').attr('text-anchor','middle').attr('y',8).style('pointer-events','none')
+  .style('font-family','var(--font-body)').attr('font-size', 10.5);
+const cValue2 = gc2.append('text').attr('text-anchor','middle').attr('y',34).style('pointer-events','none')
+  .style('font-family','var(--font-mono)').style('font-weight',700).attr('font-size', 22);
 
 function renderDoughnutRingProportional(P, ringId){
   const r = RINGS.find(x=>x.id===ringId);
@@ -398,7 +459,7 @@ function renderDoughnutRingProportional(P, ringId){
   const arcsData = pie(P.items).map(p=>({ ...p, ind:p.data }));
   const total = P.items.reduce((s,i)=>s+valFor(i.key),0);
 
-  P.g.selectAll('path').data(arcsData, d=>d.ind.key).join('path')
+  const wedge = P.g.selectAll('path').data(arcsData, d=>d.ind.key).join('path')
     .attr('data-key', d=>d.ind.key).style('cursor','pointer').attr('d', P.arcGen)
     .attr('fill', d=>{
       const v = valFor(d.ind.key);
@@ -414,79 +475,34 @@ function renderDoughnutRingProportional(P, ringId){
     .on('mousemove', e=>moveTip(e)).on('mouseleave', hideTip)
     .on('click', (e,d)=>selectIndex(d.ind.key));
 
-  const labels = P.g.selectAll('text').data(arcsData, d=>d.ind.key).join('text')
+  P.g.selectAll('text').data(arcsData, d=>d.ind.key).join('text')
     .attr('transform', d=>{ const [x,y] = P.arcGen.centroid(d); return `translate(${x},${y})`; })
     .attr('text-anchor','middle').style('pointer-events','none')
+    .style('font-family','var(--font-mono)').style('font-weight',700)
+    .attr('font-size', d=> (d.endAngle-d.startAngle) > 0.35 ? 14 : 10)
     .attr('fill', d=>{
       const v = valFor(d.ind.key);
       const isSel = d.ind.key===state.selectedIndex;
       if(isSel) return '#ffffff';
       return v>55 ? '#ffffff' : '#2A1B0C';
-    });
-
-  labels.each(function(d){
-    const sel = d3.select(this);
-    sel.selectAll('tspan').remove();
-    const angle = d.endAngle - d.startAngle;
-    if (angle < 0.11) return;                 // too narrow — rely on the hover tooltip
-    const v = Math.round(valFor(d.ind.key));
-    const showLabel = angle > 0.20;
-    const labelFs = angle > 0.35 ? 10 : 8.5;
-    const valueFs = angle > 0.35 ? 12.5 : 10;
-    const lineGap = labelFs + 1.5;
-    const valueGap = lineGap + 5;              // extra breathing room before the number
-    const labelLines = showLabel ? d.ind.label.split('\n') : [];
-    const lines = [...labelLines, {value:true, text:String(v)}];
-    const gaps = lines.map((ln,i) => i===0 ? 0 : (typeof ln === 'object' ? valueGap : lineGap));
-    const totalHeight = gaps.reduce((a,b)=>a+b,0);
-    const startDy = -totalHeight / 2;
-    lines.forEach((ln, i) => {
-      const isValue = typeof ln === 'object';
-      sel.append('tspan')
-        .attr('x', 0)
-        .attr('dy', i === 0 ? startDy : gaps[i])
-        .style('font-family', isValue ? 'var(--font-mono)' : 'var(--font-body)')
-        .style('font-weight', isValue ? 700 : 600)
-        .attr('font-size', isValue ? valueFs : labelFs)
-        .text(isValue ? ln.text : ln);
-    });
-  });
+    })
+    .text(d=> (d.endAngle-d.startAngle) > 0.12 ? Math.round(valFor(d.ind.key)) : '');
 }
 
-function renderCenterName(c){
-  const name = c ? c.name : 'Nova Scotia';
-  const parts = name.split('/').map(s=>s.trim()).filter(Boolean);
-  let lines;
-  if (parts.length <= 1) lines = [name];
-  else if (parts.length === 2) lines = [parts[0], parts[1]];
-  else lines = [parts[0], parts.slice(1).join(' / ')];
-
-  cName.selectAll('tspan').remove();
-  const fs = lines.length > 1 ? 13.5 : 17;
-  cName.attr('font-size', fs);
-  const lineGap = fs + 2;
-  const baseY = lines.length > 1 ? -24 : -16;
-  lines.forEach((ln,i)=>{
-    cName.append('tspan').attr('x',0).attr('y', baseY + i*lineGap).text(ln);
-  });
-  return lines.length;
-}
-
-function renderDoughnut(){
+function renderDoughnut2(){
   renderDoughnutRingProportional(P1,1);
   renderDoughnutRingProportional(P2,2);
   renderDoughnutRingProportional(P3,3);
   const overallVal = valFor('overall');
   const c = state.selectedCommunity;
-  gc.select('circle')
-    .attr('fill', state.selectedIndex==='overall' ? 'var(--heat-mid)' : '#FBF9F3')
+  gc2.select('circle')
+    .attr('fill', state.selectedIndex==='overall' ? colorScale(overallVal) : '#FBF9F3')
     .attr('stroke', state.selectedIndex==='overall' ? '#ffffff' : 'var(--line)')
     .attr('stroke-width', state.selectedIndex==='overall' ? 2.5 : 1.5);
   const onDark = state.selectedIndex==='overall';
-  const nLines = renderCenterName(c);
-  cName.attr('fill', onDark ? '#ffffff' : 'var(--ink)');
-  cSub.attr('y', nLines>1 ? 18 : 10).text(state.selectedIndex==='overall' ? 'Overall HVI' : indexLabel(state.selectedIndex)).attr('fill', onDark ? 'rgba(255,255,255,0.85)' : 'var(--text-dim)');
-  cValue.attr('y', nLines>1 ? 46 : 40).text(overallVal).attr('fill', onDark ? '#ffffff' : colorScale(overallVal));
+  cName2.text(c ? c.name : 'Province avg').attr('fill', onDark ? '#ffffff' : 'var(--ink)');
+  cSub2.text('Overall HVI').attr('fill', onDark ? 'rgba(255,255,255,0.85)' : 'var(--text-dim)');
+  cValue2.text(overallVal).attr('fill', onDark ? '#ffffff' : colorScale(overallVal));
 }
 
 document.getElementById('ringLegend').innerHTML = RINGS.map(r=>
@@ -496,8 +512,8 @@ document.getElementById('ringLegend').innerHTML = RINGS.map(r=>
 /* ============================== MAP (real polygons) ============================== */
 
 const map = L.map('map',{ zoomControl:true, attributionControl:true });
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-  attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains:'abcd', maxZoom:19
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+  attribution: 'Tiles &copy; Esri', maxZoom:19
 }).addTo(map);
 
 let geoLayer = null;
@@ -559,7 +575,7 @@ function renderMap(){
 
 /* ============================== ACTIONS ============================== */
 
-function renderAll(){ renderNowViewing(); renderRingSummary(); renderDoughnut(); renderMap(); }
+function renderAll(){ renderNowViewing(); renderDoughnut1(); renderDoughnut2(); renderMap(); }
 
 function selectCommunity(c){
   state.selectedCommunity = c;
@@ -579,7 +595,7 @@ renderAll();
 }
 
 const loadingMsg = document.createElement('div');
-loadingMsg.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#F7F4EC;color:#57696B;font-family:"Nunito Sans",sans-serif;font-size:14px;z-index:9999;';
+loadingMsg.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#F7F4EC;color:#57696B;font-family:IBM Plex Sans,sans-serif;font-size:14px;z-index:9999;';
 loadingMsg.textContent = 'Loading community data\u2026';
 document.body.appendChild(loadingMsg);
 
