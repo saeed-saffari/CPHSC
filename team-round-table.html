@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Our team – Centre for Planetary Health & Sustainable Care</title>
+<style>
+:root{--bg:#f6f4ef;--ink:#1d2b28;--muted:#5d6b67;--accent:#2f6b5e;--table:#ffffff;--table2:#e9efe9;--line:#cfd8d2}
+@media (prefers-color-scheme:dark){:root{--bg:#121917;--ink:#e8eeeb;--muted:#9fb0aa;--accent:#6fbfa9;--table:#1b2623;--table2:#17211e;--line:#2d3b37}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Helvetica Neue",Arial,sans-serif;line-height:1.5}
+section{max-width:860px;margin:0 auto;padding:64px 20px}
+.eyebrow{letter-spacing:.18em;text-transform:uppercase;font-size:.75rem;color:var(--accent);text-align:center;margin:0}
+h2{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:clamp(2rem,5vw,2.8rem);text-align:center;margin:.2em 0 36px}
+.stage{container-type:inline-size;position:relative;width:min(100%,760px);aspect-ratio:1;margin:0 auto}
+.table{position:absolute;inset:15%;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--table),var(--table2));border:1px solid var(--line);box-shadow:0 20px 50px rgba(0,0,0,.08),inset 0 0 0 10px var(--bg),inset 0 0 0 11px var(--line)}
+.panel{position:absolute;inset:24%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;transition:opacity .2s}
+.panel h3{font-family:Georgia,serif;font-weight:400;margin:0 0 .25em;font-size:6.2cqw;line-height:1.15}
+.panel .role{color:var(--accent);font-weight:600;font-size:2.7cqw;margin:0 0 .5em}
+.panel .cred{font-size:2.5cqw;margin:0}
+.panel .pro{color:var(--muted);font-size:2.2cqw;margin:0 0 .6em}
+.panel .k{font-size:1.9cqw;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0}
+.panel .d{font-size:2.6cqw;margin:.1em 0 0}
+.panel a{margin-top:.8em;font-size:2.5cqw;color:var(--accent)}
+.idle h3{font-size:5cqw}.idle p{font-size:2.5cqw;color:var(--muted);margin:.4em 0 0}
+.seat{position:absolute;width:12.5%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;padding:0;border:3px solid var(--bg);background:var(--accent);color:#fff;cursor:pointer;overflow:hidden;box-shadow:0 0 0 1px var(--line),0 6px 14px rgba(0,0,0,.15);transition:transform .25s,box-shadow .25s}
+.seat img{width:100%;height:100%;object-fit:cover;display:block}
+.seat span{font-family:Georgia,serif;font-size:3.4cqw}
+.seat:hover,.seat:focus-visible,.seat.on{transform:translate(-50%,-50%) scale(1.18);box-shadow:0 0 0 3px var(--accent),0 10px 22px rgba(0,0,0,.25);z-index:2;outline:none}
+
+</style>
+</head>
+<body>
+<section id="team">
+  <p class="eyebrow">The people</p>
+  <h2>Our team</h2>
+  <div class="stage" id="stage">
+    <div class="table"></div>
+    <div class="panel idle" id="panel" aria-live="polite"><h3>Centre for Planetary Health &amp; Sustainable Care</h3><p>Select a team member</p></div>
+  </div>
+</section>
+<script>
+const P="https://img.pagecloud.com/";
+const team=[
+{n:"Daniel Rainham",r:"Academic Director & Cofounder",c:"PhD",p:"he/him/his",k:"Affiliation",d:"Professor, Faculty of Health, Dalhousie University",i:P+"Vl3WVyCL6ktq00xR3isZWT_bXWY=/2100x0/filters:no_upscale()/planetary-health-and-sustainable-care-copy/images/DanielRainham_headshot2026b.png"},
+{n:"Sean Christie",r:"Clinical Director & Cofounder",c:"MD, FRCSC",p:"he/him/his",k:"Affiliation",d:"Professor and Head, Division of Neurosurgery, Dalhousie University",i:P+"mH4GL1ghtYVTbyEWgRM41-xogMM=/338x0/filters:no_upscale()/planetary-health-and-sustainable-care/images/Screenshot_2022-11-06_112200.jpg"},
+{n:"Jono Drew",r:"Research Lead & Cofounder",c:"MBChB, BMedSc(Hons)",p:"he/him/his",k:"Affiliation",d:"Killam and Vanier Doctoral Scholar, Dalhousie University",i:P+"IITx9OnoJgRYE9XNcocIO2EE8zg=/480x0/filters:no_upscale()/planetary-health-and-sustainable-care-copy/images/CIHR_Drew_Jonathan.jpeg"},
+{n:"Nabha Shetty",r:"Clinical Fellow, Lead Quality Improvement",c:"MD, MSc, FRCPC(GIM)",p:"she/her/hers",k:"Affiliation",d:"Associate Professor of Medicine, Department of Medicine, Dalhousie University",i:P+"dUc_gmcyaQM6I_LWPRsbzbMuYNw=/0x266:849x1203/2100x0/filters:no_upscale()/planetary-health-and-sustainable-care/images/IMG_20250505_134821_8162.jpg"},
+{n:"Peter Tyedmers",r:"Academic Fellow, Lead Life Cycle Assessment",c:"PhD, LL.B",p:"he/him/his",k:"Affiliation",d:"Professor, School for Resource and Environmental Studies, Dalhousie University",i:P+"CC1pnrxGwjk4hsQe1NtYcgpCDG4=/355x0/filters:no_upscale()/planetary-health-and-sustainable-care/images/PT_headshot.jpeg"},
+{n:"Nathan Ayer",r:"Research Fellow, Life Cycle Assessment",c:"PhD",p:"he/him/his",k:"Affiliation",d:"Director of Research, EarthShift Global",i:P+"jw9_RO8nRU2tX1p0KzO8I6ugwjg=/360x0/filters:no_upscale()/planetary-health-and-sustainable-care/images/Nathan-Ayer.png"},
+{n:"Basant Elsiwi",r:"Postdoctoral Fellow",c:"PhD (Epidemiology)",p:"she/her/hers",k:"Focus",d:"Environmental Exposures | Population & Child Health",i:P+"dc2CPkA8P3umzbMuoXmI0AjLrFs=/2100x0/filters:no_upscale()/planetary-health-and-sustainable-care-copy/images/Basant_2026.jpg"},
+{n:"Georgia Murray",r:"Research Fellow",c:"MA (Health Promotion)",p:"she/her/hers",k:"Focus",d:"Food operations sustainability in clinical environments",i:P+"nML3Op7xl36Y09yiMrGQsPyJb7I=/2100x0/filters:no_upscale()/planetary-health-and-sustainable-care/images/GeorgiaMurray_Headshot-2.jpeg"},
+{n:"Kelachi Nsitem",r:"Medical Student",c:"MSc (Epidemiology)",p:"she/her/hers",k:"Focus",d:"Integrating carbon costs into economic evaluations of health technologies",i:P+"XzgmSdE2kykKA2MnM7XUr2hcjRc=/350x0/filters:no_upscale()/planetary-health-and-sustainable-care/images/Kelachi_Headshot1.jpeg"},
+{n:"Forough Fendereski",r:"Postdoctoral Fellow",c:"PhD (Sustainability Science)",p:"she/her/hers",k:"Focus",d:"Nova Scotia Heat Vulnerability Index",i:P+"m9yZYCC7WF8TdENb0SqYy6cOyZQ=/2100x0/filters:no_upscale()/planetary-health-and-sustainable-care-copy/images/Forough_Headshot.jpg"},
+{n:"Saeed Saffari",r:"Data Analyst",c:"MA (Economics)",p:"he/him/his",k:"Focus",d:"Organizational LCA; data analytics and visualization; programming",i:P+"hhmJQtHEa1_k-N-OAouHiigZfAs=/360x0/filters:no_upscale()/planetary-health-and-sustainable-care-copy/images/SaeedSaffari.jpg"},
+{n:"Isobel Anderson",r:"Research Fellow",c:"MREM (Resource and Environmental Management)",p:"she/her/hers",k:"Focus",d:"Canadian Environment & Pregnancy Impact Cohort (CanEPIC)",i:P+"cnV9UUnREGR56z5psXxCKcEOW_g=/343x0/filters:no_upscale()/planetary-health-and-sustainable-care-copy/images/IMG_6936.jpeg"},
+{n:"Peyton Duggan",r:"Graduate Student",c:"MA (Health Promotion)",p:"she/her/hers",k:"Focus",d:"Food operations sustainability in clinical environments",i:P+"8LSpBoWOfYsrE1Ks-Zadl5wOm-U=/438x0/filters:no_upscale()/planetary-health-and-sustainable-care-copy/images/IMG_0300.jpeg"},
+{n:"Gabrielle Barton",r:"Graduate Student",c:"MA (Health Promotion)",p:"she/her/hers",k:"Focus",d:"Nova Scotia Heat Vulnerability Index",i:P+"ytc-SlQWve1As__R8dO1e5R-FPg=/2100x0/filters:no_upscale()/planetary-health-and-sustainable-care-copy/images/IMG_3147_2b.png"}
+]; // add link:"https://..." to any member to show a profile link
+const stage=document.getElementById("stage"),panel=document.getElementById("panel"),idle=panel.innerHTML;
+let pinned=null;const seats=[],N=team.length;
+function place(){seats.forEach((b,k)=>{const a=-Math.PI/2+k*2*Math.PI/N;b.style.left=50+42*Math.cos(a)+"%";b.style.top=50+42*Math.sin(a)+"%"})}
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function show(m,el){
+  panel.className="panel";
+  panel.innerHTML=`<h3>${esc(m.n)}</h3><p class="role">${esc(m.r)}</p><p class="cred">${esc(m.c)}</p><p class="pro">[${esc(m.p)}]</p><p class="k">${m.k}</p><p class="d">${esc(m.d)}</p>`+(m.link?`<a href="${esc(m.link)}">View profile →</a>`:"");
+  seats.forEach(s=>s.classList.toggle("on",s===el));
+}
+function reset(){
+  if(pinned!==null){show(team[pinned],seats[pinned]);return}
+  panel.className="panel idle";panel.innerHTML=idle;seats.forEach(s=>s.classList.remove("on"));
+}
+team.forEach((m,k)=>{
+  const b=document.createElement("button");
+  b.className="seat";b.type="button";b.setAttribute("aria-label",m.n+", "+m.r);
+  const ini=m.n.split(" ").map(w=>w[0]).join("");
+  const img=new Image();img.alt="";img.src=m.i;img.onerror=()=>{b.innerHTML=`<span>${ini}</span>`};
+  b.appendChild(img);
+  b.onmouseenter=b.onfocus=()=>show(m,b);
+  b.onclick=()=>{pinned=pinned===k?null:k;show(m,b)};
+  b.onmouseleave=b.onblur=reset;
+  stage.appendChild(b);seats.push(b);
+});
+place();
+
+</script>
+</body>
+</html>
