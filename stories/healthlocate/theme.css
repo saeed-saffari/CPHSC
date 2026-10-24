@@ -1,0 +1,113 @@
+/* Naiia Health: refined theme. Load AFTER style.css. Safe to delete to revert. */
+:root {
+  --blue-900: #0f2f4f;
+  --blue-700: #1d6fa5;
+  --blue-500: #3b9ad9;
+  --blue-50: #f0f7fc;
+  --teal: #14a39a;
+  --ink: #1b2a38;
+  --muted: #6a7b8c;
+  --line: #e4ebf1;
+  --bg: #f3f6f9;
+  --radius: 16px;
+  --shadow: 0 1px 2px rgba(15,47,79,.05), 0 8px 24px rgba(15,47,79,.06);
+}
+
+body { background: linear-gradient(180deg, #eaf2f8 0, var(--bg) 280px); -webkit-font-smoothing: antialiased; }
+
+/* ---------- Header: light, calm ---------- */
+.topbar {
+  background: rgba(255,255,255,.9); backdrop-filter: blur(8px);
+  color: var(--blue-900); border-bottom: 1px solid var(--line);
+  box-shadow: none; padding: 14px 32px; position: sticky; top: 0;
+}
+.topbar h1 { font-size: 19px; font-weight: 800; letter-spacing: .6px; color: var(--blue-900); }
+.topbar h1 .brand-accent { color: var(--teal); font-weight: 800; margin-left: 2px; }
+.topbar p { color: var(--muted); opacity: 1; font-size: 12.5px; }
+.topbar-tag { color: var(--blue-700); background: var(--blue-50); border: 1px solid #d3e6f4; }
+.btn-print { color: #fff; background: var(--blue-700); border-radius: 10px; padding: 9px 16px; }
+.btn-print:hover { background: var(--blue-900); box-shadow: 0 6px 16px rgba(15,47,79,.2); }
+
+/* ---------- Panels ---------- */
+.panels { gap: 22px; padding: 26px 32px 40px; max-width: 1480px; }
+.panel { border: none; box-shadow: var(--shadow); }
+.panel-header { border-bottom: 1px solid var(--line); padding: 14px 20px; }
+.panel-title { color: var(--muted); font-size: 11.5px; letter-spacing: .9px; }
+.panel-body { padding: 22px 22px 24px; }
+.collapse-btn { border-radius: 9px; }
+
+/* ---------- Search ---------- */
+.search-title { font-size: 22px; letter-spacing: -.4px; }
+.search-sub { margin-top: 2px; font-size: 13.5px; }
+.search-box { border: 1.5px solid #d5e1ea; border-radius: 12px; box-shadow: none; background: #fbfdfe; }
+.search-box:focus-within { background: #fff; border-color: var(--blue-500); box-shadow: 0 0 0 4px rgba(59,154,217,.15); }
+.autocomplete input { padding: 14px 0; }
+.suggestions { border-radius: 12px; box-shadow: 0 12px 32px rgba(15,47,79,.14); border: 1px solid var(--line); }
+.mini-map { height: 210px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line); border: none; }
+.loc-info { padding: 14px 16px; background: var(--blue-50); border-radius: 12px; border: 1px solid #dcebf6; }
+.ce-name-lg { font-size: 17px; }
+.block-label { color: var(--muted); letter-spacing: .8px; }
+.ci-row { padding: 9px 0; border-bottom: 1px solid #eef3f7; }
+.ci-icon { color: var(--teal); }
+.ci-value { color: var(--ink); }
+
+/* ---------- Tabs: segmented control ---------- */
+.tabs { display: inline-flex; gap: 4px; padding: 4px; background: #eef3f7; border: none; border-radius: 12px; margin-bottom: 18px; }
+.tab { padding: 8px 18px; border: none; margin: 0; border-radius: 9px; font-size: 13.5px; }
+.tab.active { background: #fff; color: var(--blue-900); box-shadow: 0 1px 4px rgba(15,47,79,.12); }
+
+/* ---------- Profile ---------- */
+.evidence-box { margin: 0 0 16px; padding: 12px 14px; border-radius: 12px; background: #f2faf9; border-color: #d3eeeb; }
+.eb-icon { color: var(--teal); }
+.eb-text { font-size: 12.5px; }
+.overall-summary { border-radius: 14px; padding: 20px 22px; border-width: 1px; }
+.os-headline { font-size: 21px; }
+.os-sentence { font-size: 14px; line-height: 1.5; }
+.scores-explainer { background: #fff; border-radius: 12px; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
+.se-title { margin: 0; font-size: 12.5px; }
+.se-grade { border-radius: 6px; }
+
+.categories { gap: 14px; }
+.cat-card {
+  background: #fff; border: 1px solid var(--line); border-top-width: 1px; border-radius: 14px;
+  padding: 16px; position: relative; overflow: hidden; gap: 10px;
+}
+.cat-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--muted); }
+.cat-card[style*="border-top"] { border-top-color: var(--line) !important; }
+.cat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(15,47,79,.1); border-color: #d3e1ec; }
+.cat-grade { border-radius: 10px; }
+.cat-name { font-size: 14px; }
+.cat-more { color: var(--blue-700); }
+.cat-more::after { content: " \2192"; }
+
+/* ---------- Social prescribing ---------- */
+.sp-title { font-size: 19px; }
+.svc-cat { border-radius: 14px; border: 1.5px solid var(--line); box-shadow: none; }
+.svc-cat:hover { border-color: var(--blue-500); box-shadow: 0 8px 20px rgba(15,47,79,.08); }
+.svc-cat.active { background: var(--blue-900); border-color: var(--blue-900); }
+.svc-cat-icon { border-radius: 12px; color: var(--teal); background: #eaf7f6; }
+.svc-item { padding: 16px 6px; }
+.svc-icon { color: var(--teal); background: #eaf7f6; }
+
+/* ---------- Modals ---------- */
+.modal-backdrop { backdrop-filter: blur(3px); }
+.modal-card { border-radius: 18px; box-shadow: 0 24px 70px rgba(15,47,79,.3); }
+.btn-primary { background: var(--blue-700); border-radius: 10px; }
+.btn-primary:hover { background: var(--blue-900); }
+.btn-secondary { border-radius: 10px; }
+
+/* ---------- Empty state (hero) ---------- */
+.empty-state { min-height: 300px; flex-direction: column; gap: 22px; padding: 10px; text-align: center; }
+.empty-state p { max-width: 380px; font-size: 15px; color: var(--ink); font-weight: 600; }
+.es-steps { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
+.es-step { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--muted); padding: 9px 14px; background: #f6f9fb; border: 1px solid var(--line); border-radius: 999px; }
+.es-step b { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--blue-700); color: #fff; font-size: 12px; }
+
+/* ---------- Small screens ---------- */
+@media (max-width: 900px) {
+  .panels { flex-direction: column; padding: 16px; }
+  #leftPanel, #rightPanel { flex: none; width: 100%; }
+  .topbar { padding: 12px 16px; }
+  .topbar-tag { display: none; }
+}
+@media print { body { background: #fff; } }
