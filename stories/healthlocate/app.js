@@ -251,11 +251,10 @@ function renderResult(data) {
   currentPatient = { lat: data.lat, lng: data.lng, name: `${data.community} · ${data.address}` };
   resetServices();
 
-  const categories = data.categories || [];
+  const categories = (data.categories || []).filter(category => category.icon !== "transit");
   // Guard each renderer so one failure doesn't blank the whole result
   try { renderNsMap(data.lat, data.lng, data.ce_geometry); } catch (e) { console.error("map:", e); }
   try { renderOverall(data.overall); } catch (e) { console.error("overall:", e); }
-  try { renderBars(categories); } catch (e) { console.error("bars:", e); }
   try { renderCategories(categories); } catch (e) { console.error("categories:", e); }
   try { fillPrintSummary(data, categories); } catch (e) { console.error("print:", e); }
 }
@@ -311,24 +310,6 @@ function renderOverall(overall) {
 function withAlpha(hex, a) {
   const n = parseInt(hex.slice(1), 16);
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
-}
-
-// Progress bars per scored category — fill by score, labelled qualitatively (no numbers)
-function renderBars(categories) {
-  const el = document.getElementById("scoreBars");
-  const scored = categories.filter((c) => c.scored && c.score != null);
-  el.innerHTML = scored
-    .map((c) => {
-      const pct = (c.score / 5) * 100;
-      return (
-        `<div class="bar-row">` +
-          `<div class="bar-label"><span class="bar-icon" style="color:${c.color}">${iconSvg(c.icon)}</span>${c.name}</div>` +
-          `<div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${c.color}"></div></div>` +
-          `<div class="bar-grade" style="background:${c.color}">${c.grade}</div>` +
-        `</div>`
-      );
-    })
-    .join("");
 }
 
 function renderCommunityInfo(rows) {
