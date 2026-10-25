@@ -31,32 +31,6 @@ function inGeometry(x,y,g) {
   return polygons.some(p=>inRing(x,y,p[0])&&!p.slice(1).some(r=>inRing(x,y,r)));
 }
 const response = (data,status=200) => new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json'}});
-const SERVICE_FILTERS={pharmacy:['["amenity"="pharmacy"]','["shop"="chemist"]','["pharmacy"="yes"]'],mental_health:['["healthcare"="psychotherapist"]','["healthcare"="counselling"]','["amenity"="clinic"]["healthcare"="mental_health"]'],physiotherapy:['["healthcare"="physiotherapist"]'],walkin:['["amenity"="clinic"]','["amenity"="doctors"]'],laboratory:['["healthcare"="laboratory"]','["amenity"="laboratory"]']};
-const tagsMatch=(tags,f)=>[...f.matchAll(/\["([^"]+)"="([^"]+)"\]/g)].every(m=>tags[m[1]]===m[2]);
-async function overpassQuery(query) {
- for(const host of ['overpass-api.de','overpass.private.coffee','overpass.kumi.systems']) {
-  try {
-   const r=await fetch(`https://${host}/api/interpreter`,{method:'POST',body:new URLSearchParams({data:query}),signal:AbortSignal.timeout(30000)});
-   if(!r.ok)continue;
-   const data=await r.json(); if(data.remark&&!data.elements?.length)continue;
-   return data.elements||[];
-  } catch {}
- }
- throw Error('Service lookup is temporarily unavailable.');
-}
-function formatServices(elements,lat,lng) {
- const seen=new Set(), results=[];
- for(const el of elements) {
-  const t=el.tags||{}, a=el.lat??el.center?.lat,b=el.lon??el.center?.lon;
-  if(!t.name||a==null||b==null||seen.has(t.name.toLowerCase()))continue;
-  seen.add(t.name.toLowerCase());
-  const rad=Math.PI/180,h=Math.sin((a-lat)*rad/2)**2+Math.cos(lat*rad)*Math.cos(a*rad)*Math.sin((b-lng)*rad/2)**2;
-  const address=[ [t['addr:housenumber'],t['addr:street']].filter(Boolean).join(' '),t['addr:city']].filter(Boolean).join(', ');
-  const website=t.website||t['contact:website'];
-  results.push({name:escapeHTML(t.name),address:escapeHTML(address),distance_km:Math.round(2*6371*Math.asin(Math.min(1,Math.sqrt(h)))*10)/10,phone:escapeHTML(t.phone||t['contact:phone']),hours:escapeHTML(t.opening_hours),website:website&&/^https?:\/\//i.test(website)?escapeHTML(website):null,maps_url:`https://www.google.com/maps/dir/?api=1&destination=${a},${b}`});
- }
- return results.sort((a,b)=>a.distance_km-b.distance_km).slice(0,5);
-}
 async function localFetch(path) {
  const u=new URL(path,'https://local.invalid'), p=u.searchParams;
  try {
@@ -89,16 +63,32 @@ async function localFetch(path) {
     return {label:`${address}, ${r.comm||''}`,address,community:r.comm||'',lat:Number(r.lat),lng:Number(r.long)};
    }));
   }
-  if(u.pathname==='/api/services'||u.pathname==='/api/services_all') {
-   const all=u.pathname==='/api/services_all', cat=p.get('category');
-   if(!all&&!SERVICE_FILTERS[cat]) return response({detail:'Unknown category'},400);
+  if(u.pathname==='/api/services') {
+   const filters={pharmacy:['["amenity"="pharmacy"]','["shop"="chemist"]','["pharmacy"="yes"]'],mental_health:['["healthcare"="psychotherapist"]','["healthcare"="counselling"]','["amenity"="clinic"]["healthcare"="mental_health"]'],physiotherapy:['["healthcare"="physiotherapist"]'],walkin:['["amenity"="clinic"]','["amenity"="doctors"]'],laboratory:['["healthcare"="laboratory"]','["amenity"="laboratory"]']}[p.get('category')];
+   if(!filters) return response({detail:'Unknown category'},400);
    const lat=Number(p.get('lat')),lng=Number(p.get('lng'));
-   const filters=all?[...new Set(Object.values(SERVICE_FILTERS).flat())]:SERVICE_FILTERS[cat];
-   const elements=await overpassQuery('[out:json][timeout:25];('+filters.map(f=>`node${f}(around:10000,${lat},${lng});way${f}(around:10000,${lat},${lng});`).join('')+');out center tags;');
-   if(!all) return response(formatServices(elements,lat,lng));
-   const out={};
-   for(const c in SERVICE_FILTERS) out[c]=formatServices(elements.filter(el=>SERVICE_FILTERS[c].some(f=>tagsMatch(el.tags||{},f))),lat,lng);
-   return response(out);
+   const query='[out:json][timeout:25];('+filters.map(f=>`node${f}(around:10000,${lat},${lng});way${f}(around:10000,${lat},${lng});`).join('')+');out center tags;';
+   let elements;
+   for(const host of ['overpass-api.de','overpass.private.coffee','overpass.kumi.systems']) {
+    try {
+     const r=await fetch(`https://${host}/api/interpreter`,{method:'POST',body:new URLSearchParams({data:query}),signal:AbortSignal.timeout(40000)});
+     if(!r.ok)continue;
+     const data=await r.json(); if(data.remark&&!data.elements?.length)continue;
+     elements=data.elements||[]; break;
+    } catch {}
+   }
+   if(!elements)throw Error('Service lookup is temporarily unavailable.');
+   const seen=new Set(), results=[];
+   for(const el of elements) {
+    const t=el.tags||{}, a=el.lat??el.center?.lat,b=el.lon??el.center?.lon;
+    if(!t.name||a==null||b==null||seen.has(t.name.toLowerCase()))continue;
+    seen.add(t.name.toLowerCase());
+    const rad=Math.PI/180,h=Math.sin((a-lat)*rad/2)**2+Math.cos(lat*rad)*Math.cos(a*rad)*Math.sin((b-lng)*rad/2)**2;
+    const address=[ [t['addr:housenumber'],t['addr:street']].filter(Boolean).join(' '),t['addr:city']].filter(Boolean).join(', ');
+    const website=t.website||t['contact:website'];
+    results.push({name:escapeHTML(t.name),address:escapeHTML(address),distance_km:Math.round(2*6371*Math.asin(Math.min(1,Math.sqrt(h)))*10)/10,phone:escapeHTML(t.phone||t['contact:phone']),hours:escapeHTML(t.opening_hours),website:website&&/^https?:\/\//i.test(website)?escapeHTML(website):null,maps_url:`https://www.google.com/maps/dir/?api=1&destination=${a},${b}`});
+   }
+   return response(results.sort((a,b)=>a.distance_km-b.distance_km).slice(0,5));
   }
   return response({detail:'Unknown endpoint'},404);
  } catch(e) {return response({detail:e.message||'Public data service unavailable. Check your internet connection.'},502);}

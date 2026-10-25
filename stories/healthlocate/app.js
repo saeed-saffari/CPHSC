@@ -205,10 +205,6 @@ function hideSuggestions() {
   activeIndex = -1;
 }
 
-// Start downloading the community boundaries as soon as the page opens, so the data
-// is ready by the time an address is chosen (it is the largest file on the page).
-loadCommunityData().catch(() => {});
-
 // ---------- Selection -> profile lookup ----------
 async function selectItem(item) {
   input.value = item.label;
@@ -253,7 +249,6 @@ function renderResult(data) {
   renderCommunityInfo(data.community_info || []);
 
   currentPatient = { lat: data.lat, lng: data.lng, name: `${data.community} · ${data.address}` };
-  setTimeout(() => loadAllServices().catch(() => {}), 400); // prefetch service types after the profile has painted
   resetServices();
 
   const categories = (data.categories || []).filter(category => category.icon !== "transit");
@@ -462,50 +457,6 @@ const SERVICE_CATS = [
   { key: "laboratory",    label: "Laboratory",     icon: "lab" },
 ];
 
-// ---------- Services cache ----------
-// One combined lookup per location (rounded to ~100 m) covers every service type.
-// The pending request is shared, so tabs, prefetch and print never search twice.
-// Saved in sessionStorage (cleared when the tab closes, so patient locations are not kept).
-const SVC_TTL = 60 * 60 * 1000;
-const svcPending = {};
-const svcSingle = {};
-const svcLoc = () => `${Number(currentPatient.lat).toFixed(3)},${Number(currentPatient.lng).toFixed(3)}`;
-
-function loadAllServices() {
-  const loc = svcLoc();
-  try {
-    const o = JSON.parse(sessionStorage.getItem("svc:" + loc));
-    if (o && Date.now() - o.t < SVC_TTL) return Promise.resolve(o.v);
-  } catch {}
-  if (!svcPending[loc]) {
-    const { lat, lng } = currentPatient;
-    svcPending[loc] = localFetch(`/api/services_all?lat=${lat}&lng=${lng}`)
-      .then(async (r) => {
-        if (!r.ok) throw new Error();
-        const v = await r.json();
-        try { sessionStorage.setItem("svc:" + loc, JSON.stringify({ t: Date.now(), v })); } catch {}
-        return v;
-      })
-      .catch((e) => { delete svcPending[loc]; throw e; }); // failures are never cached
-  }
-  return svcPending[loc];
-}
-
-async function getServices(cat) {
-  const key = svcLoc() + "|" + cat;
-  const single = () =>
-    (svcSingle[key] ||= localFetch(`/api/services?lat=${currentPatient.lat}&lng=${currentPatient.lng}&category=${cat}`)
-      .then(async (r) => { if (!r.ok) throw new Error(); return r.json(); })
-      .catch((e) => { delete svcSingle[key]; throw e; }));
-  const combined = loadAllServices().then((all) => all[cat] || []);
-  try {
-    // give the shared lookup 12 s; if it fails or is slow, also run the single-type search and take the first success
-    return await Promise.race([combined, new Promise((_, rej) => setTimeout(rej, 12000))]);
-  } catch {
-    return Promise.any([combined, single()]);
-  }
-}
-
 (function buildServiceButtons() {
   const el = document.getElementById("serviceCats");
   if (!el) return;
@@ -539,7 +490,11 @@ async function selectServiceCategory(cat, btn) {
 
   res.innerHTML = '<p class="svc-msg"><span class="spinner"></span> Finding nearby services…</p>';
   try {
-    renderServices(await getServices(cat));
+    const url = `/api/services?lat=${currentPatient.lat}&lng=${currentPatient.lng}&category=${cat}`;
+    const r = await localFetch(url);
+    if (!r.ok) throw new Error();
+    const items = await r.json();
+    renderServices(items);
   } catch {
     res.innerHTML = '<p class="svc-msg error">Could not load services right now. Please try again.</p>';
   }
@@ -619,7 +574,8 @@ document.getElementById("pmGenerate").addEventListener("click", async () => {
     try {
       const groups = await Promise.all(
         chosen.map(async (cat) => {
-          const items = await getServices(cat).catch(() => []);
+          const r = await localFetch(`/api/services?lat=${currentPatient.lat}&lng=${currentPatient.lng}&category=${cat}`);
+          const items = r.ok ? await r.json() : [];
           return { cat, items: Array.isArray(items) ? items.slice(0, 4) : [] };
         })
       );
