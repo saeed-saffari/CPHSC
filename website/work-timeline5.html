@@ -1,0 +1,78 @@
+<section id="work-timeline" aria-label="Our research projects">
+<style>
+#work-timeline{--ink:#14323a;--mute:#5d7378;--teal:#0f6b6e;--ghost:#a9bcc0;
+  background:#fff;color:var(--ink);color-scheme:light;padding:40px 20px 64px;font-family:inherit;box-sizing:border-box;overflow:hidden}
+#work-timeline *{box-sizing:border-box}
+#work-timeline .scene{position:relative;container-type:inline-size;width:100%;max-width:1100px;margin:0 auto;aspect-ratio:1000/1640}
+#work-timeline .road{position:absolute;inset:0;width:100%;height:100%;-webkit-mask-image:linear-gradient(to right,transparent,#000 12%),linear-gradient(to top,transparent,#000 5%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent,#000 12%),linear-gradient(to top,transparent,#000 5%);mask-composite:intersect}
+#work-timeline .pin{position:absolute;width:0;height:0}
+#work-timeline .stalk{position:absolute;left:-.15cqw;bottom:0;width:.3cqw;height:6cqw;background:var(--teal)}
+#work-timeline .shadow{position:absolute;left:-1.6cqw;bottom:-.6cqw;width:3.2cqw;height:1.2cqw;border-radius:50%;background:var(--teal);opacity:.55}
+#work-timeline .head{position:absolute;display:block;width:calc(var(--d)*.1cqw);height:calc(var(--d)*.1cqw);left:calc(var(--d)*-.05cqw);bottom:6cqw;
+  border-radius:50%;border:max(3px,.5cqw) solid var(--teal);background:#fff;overflow:hidden;transition:transform .2s,box-shadow .2s}
+#work-timeline .head img{display:block;width:100%;height:100%;object-fit:cover}
+#work-timeline a.head:hover,#work-timeline a.head:focus-visible{transform:scale(1.07);box-shadow:0 8px 22px rgba(15,107,110,.3);outline:none}
+#work-timeline a.head:focus-visible{outline:3px solid var(--teal);outline-offset:3px}
+#work-timeline .info{position:absolute;width:25cqw;font-size:max(12px,1.3cqw);line-height:1.5}
+#work-timeline .info.r{left:calc(var(--d)*.05cqw + 1.6cqw + var(--dx)*.1cqw);top:calc(-6cqw - var(--d)*.1cqw + .4cqw + var(--dy)*.1cqw)}
+#work-timeline .info.l{right:calc(var(--d)*.05cqw + 1.6cqw);top:calc(-6cqw - var(--d)*.1cqw + .4cqw + var(--dy)*.1cqw);text-align:right}
+#work-timeline .info.a{left:calc(-12.5cqw + var(--dx)*.1cqw);bottom:calc(6cqw + var(--d)*.1cqw + 1.2cqw)}
+#work-timeline .tag{margin:0 0 .3em;font-size:.92em;font-weight:600;color:var(--teal)}
+#work-timeline h3{margin:0 0 .4em;font-size:1.22em;line-height:1.3;font-weight:700}
+#work-timeline p.d{margin:0;color:var(--mute)}
+#work-timeline .go{display:inline-block;margin-top:.6em;font-weight:600;color:var(--teal);text-decoration:none}
+#work-timeline a.go:hover{text-decoration:underline}
+#work-timeline .soon .head{border-color:var(--ghost)}
+#work-timeline .soon .head img{filter:grayscale(.8);opacity:.75}
+#work-timeline .soon .stalk,#work-timeline .soon .shadow{background:var(--ghost)}
+#work-timeline .soon .tag,#work-timeline .soon .go{color:var(--mute)}
+@media (max-width:959px){
+  #work-timeline{padding:28px 16px 48px}
+  #work-timeline .scene{container-type:normal;aspect-ratio:auto;position:relative;padding:0}
+  #work-timeline .scene::before{content:"";position:absolute;left:28px;top:0;bottom:0;width:8px;border-radius:4px;background:#cbd8da}
+  #work-timeline .road,#work-timeline .stalk,#work-timeline .shadow{display:none}
+  #work-timeline .pin{position:relative;left:auto!important;top:auto!important;width:auto;height:auto;display:flex;gap:16px;align-items:flex-start;padding:0 0 32px}
+  #work-timeline .pin .head{position:relative;left:auto;bottom:auto;width:64px;height:64px;flex:none;border-width:4px}
+  #work-timeline .pin .info{position:static;width:auto;font-size:15px;text-align:left}
+  #work-timeline .pin .info.r,#work-timeline .pin .info.l,#work-timeline .pin .info.a{position:static;text-align:left}
+}
+@media (prefers-reduced-motion:reduce){#work-timeline *{transition:none!important}}
+</style>
+<div class="scene">
+  <svg class="road" viewBox="0 0 1000 1640" aria-hidden="true">
+    <defs><linearGradient id="wt-g" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#aebfc3"/><stop offset="1" stop-color="#e6eef0"/></linearGradient></defs>
+    <polygon points="-33.7,456.3 -16.3,454.0 0.4,452.0 17.0,450.1 33.4,448.6 49.6,447.2 65.6,446.1 81.4,445.3 97.0,444.7 112.2,444.4 127.2,444.4 141.8,444.7 156.2,445.2 170.1,446.1 183.7,447.3 196.9,448.8 209.7,450.6 222.0,452.7 233.9,455.1 245.4,457.8 256.3,460.8 266.7,464.1 276.7,467.7 286.1,471.5 295.1,475.7 303.5,480.1 311.4,484.8 318.9,489.7 325.9,495.0 332.5,500.6 338.7,506.5 344.6,512.8 350.0,519.5 355.2,526.7 359.9,534.4 364.4,542.8 368.5,551.8 372.2,561.6 375.4,572.1 378.3,583.5 380.6,595.5 382.1,607.3 382.9,618.2 383.0,628.4 382.3,638.1 381.1,647.3 379.3,656.2 377.0,664.9 374.0,673.4 370.6,681.8 366.5,690.2 361.9,698.6 356.8,706.9 351.1,715.3 345.0,723.8 338.4,732.2 331.4,740.8 324.0,749.4 316.4,758.1 308.5,766.9 300.5,775.9 292.3,785.0 284.1,794.4 275.8,804.0 267.7,813.9 259.6,824.1 251.8,834.7 244.3,845.8 237.2,857.3 230.6,869.3 224.5,881.9 219.1,895.0 214.5,908.7 210.8,922.9 208.1,937.6 206.4,952.9 205.9,968.6 206.5,984.7 208.4,1001.3 211.4,1018.3 215.8,1036.0 221.4,1052.5 227.8,1067.5 235.0,1081.5 243.1,1094.5 252.0,1106.4 261.7,1117.2 271.9,1127.0 282.6,1135.8 293.8,1143.6 305.3,1150.5 317.1,1156.6 329.1,1161.9 341.3,1166.6 353.6,1170.7 366.0,1174.4 378.4,1177.6 390.9,1180.5 403.5,1183.1 416.0,1185.5 428.4,1187.7 440.8,1189.9 453.1,1192.0 465.3,1194.1 477.3,1196.3 489.2,1198.7 500.8,1201.2 512.1,1203.9 523.2,1206.9 533.9,1210.2 544.3,1213.9 554.3,1217.9 564.0,1222.4 573.2,1227.4 581.9,1232.8 590.3,1238.9 598.1,1245.6 605.6,1252.9 612.6,1261.1 619.1,1270.1 625.3,1280.4 630.9,1290.4 636.8,1300.3 642.7,1309.7 648.7,1318.6 654.8,1326.9 660.9,1334.8 667.1,1342.3 673.3,1349.3 679.6,1356.0 685.9,1362.3 692.2,1368.2 698.6,1373.9 704.9,1379.3 711.3,1384.4 717.7,1389.3 724.1,1394.0 730.4,1398.5 736.8,1402.9 743.2,1407.1 749.5,1411.3 755.8,1415.5 762.2,1419.6 768.4,1423.7 774.7,1427.8 781.0,1432.0 787.2,1436.3 793.4,1440.7 799.6,1445.3 805.8,1450.0 811.9,1455.0 818.1,1460.2 824.2,1465.6 830.3,1471.4 836.4,1477.4 842.5,1483.9 848.5,1490.7 854.6,1497.9 860.6,1505.6 866.5,1513.7 872.5,1522.5 887.5,1512.5 881.4,1503.4 875.3,1494.7 869.1,1486.4 862.9,1478.6 856.7,1471.2 850.4,1464.2 844.2,1457.5 837.9,1451.2 831.6,1445.2 825.2,1439.5 818.9,1434.0 812.6,1428.7 806.3,1423.7 800.0,1418.8 793.8,1414.1 787.5,1409.5 781.3,1405.0 775.2,1400.6 769.0,1396.2 763.0,1391.8 757.0,1387.4 751.0,1383.0 745.1,1378.5 739.3,1373.9 733.5,1369.2 727.8,1364.4 722.2,1359.3 716.6,1354.1 711.1,1348.7 705.7,1342.9 700.3,1336.9 695.0,1330.6 689.7,1324.0 684.6,1316.9 679.5,1309.5 674.4,1301.6 669.4,1293.2 664.5,1284.4 659.7,1275.0 654.7,1264.6 648.3,1252.2 640.8,1240.5 632.7,1229.6 623.8,1219.6 614.4,1210.4 604.4,1202.1 593.9,1194.5 583.1,1187.6 571.9,1181.4 560.4,1175.8 548.6,1170.7 536.7,1166.1 524.6,1161.9 512.4,1158.0 500.1,1154.4 487.8,1151.0 475.5,1147.7 463.2,1144.6 451.1,1141.6 439.1,1138.5 427.2,1135.4 415.6,1132.3 404.3,1129.0 393.2,1125.5 382.6,1121.8 372.3,1117.9 362.5,1113.7 353.2,1109.2 344.5,1104.4 336.3,1099.2 328.6,1093.7 321.5,1087.8 315.0,1081.5 309.1,1074.6 303.6,1067.3 298.7,1059.3 294.2,1050.5 290.3,1040.9 286.9,1030.3 284.2,1019.0 282.2,1005.9 281.1,993.5 280.9,981.9 281.5,971.2 282.8,961.1 284.8,951.7 287.3,942.9 290.4,934.4 294.1,926.2 298.3,918.3 303.1,910.5 308.3,902.9 314.1,895.3 320.4,887.7 327.2,880.2 334.4,872.6 342.1,865.0 350.1,857.3 358.4,849.5 367.0,841.6 375.9,833.5 384.9,825.2 394.1,816.6 403.3,807.7 412.6,798.4 421.8,788.8 431.0,778.6 439.9,767.9 448.6,756.6 456.9,744.6 464.8,732.0 472.2,718.5 478.9,704.4 484.8,689.4 489.9,673.6 494.0,657.2 497.1,639.9 499.0,622.0 499.8,603.5 499.4,584.5 498.0,565.7 495.6,547.5 492.2,529.7 487.9,512.4 482.6,495.6 476.3,479.4 469.0,463.7 460.8,448.6 451.8,434.1 441.9,420.3 431.2,407.3 419.8,394.9 407.7,383.3 395.0,372.4 381.7,362.2 368.0,352.7 353.8,343.8 339.1,335.6 324.1,328.1 308.7,321.1 293.0,314.7 277.0,308.8 260.7,303.4 244.1,298.5 227.2,294.1 210.1,290.1 192.8,286.4 175.3,283.2 157.6,280.4 139.7,277.9 121.6,275.7 103.4,273.9 85.0,272.3 66.4,271.1 47.8,270.1 29.0,269.3 10.2,268.9 -8.8,268.6 -27.8,268.6 -46.3,268.7" fill="url(#wt-g)"/>
+    <path d="M-40.0 362.5 C200.0 345.0 420.0 380.0 440.0 590.0 C460.0 800.0 200.0 817.5 250.0 1027.5 C300.0 1220.0 560.0 1115.0 640.0 1272.5 C710.0 1412.5 800.0 1395.0 880.0 1517.5" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="16 14" stroke-linecap="round" opacity=".85"/>
+  </svg>
+    <div class="pin" style="left:7.57%;top:21.87%;--d:112;--dx:35;--dy:0">
+      <span class="stalk"></span><span class="shadow"></span>
+      <a class="head" href="https://sustainablecare.ca/research/healthcarelca" aria-label="HealthcareLCA: A global database of healthcare&#8217;s environmental impacts"><img loading="lazy" alt="" src="https://img.pagecloud.com/8TQCDTmhx3Cj3ORpJzsNbOfBFSE=/540x0/filters:no_upscale%28%29/planetary-health-and-sustainable-care/images/olga-kononenko-98__MsKaUsI-unsplash.jpg"></a>
+      <div class="info a"><p class="tag">Living data</p><h3>HealthcareLCA: A global database of healthcare&#8217;s environmental impacts</h3><p class="d">Collating existing healthcare-related life cycle assessment studies into a living, interactive repository.</p><a class="go" href="https://sustainablecare.ca/research/healthcarelca">Learn more &#8594;</a></div>
+    </div>
+    <div class="pin" style="left:36.72%;top:26.83%;--d:104;--dx:50;--dy:0">
+      <span class="stalk"></span><span class="shadow"></span>
+      <a class="head" href="https://healthatlas.ca/" aria-label="The Nova Scotia Health Atlas"><img loading="lazy" alt="" src="https://img.pagecloud.com/lEYWbpiB7w_wM5n3F-lE58jjuq8=/1603x0:5232x3989/326x0/filters:no_upscale%28%29/planetary-health-and-sustainable-care-copy/images/photo-1626994891669-6155cc6274d4.jpg"></a>
+      <div class="info r"><p class="tag">Population health</p><h3>The Nova Scotia Health Atlas</h3><p class="d">Visualizing the determinants, health behaviours and health outcomes of Nova Scotians through an online, interactive tool.</p><a class="go" href="https://healthatlas.ca/">Learn more &#8594;</a></div>
+    </div>
+    <div class="pin" style="left:41.88%;top:42.97%;--d:96;--dx:40;--dy:0">
+      <span class="stalk"></span><span class="shadow"></span>
+      <a class="head" href="https://sustainablecare.ca/research/hospital-food-emissions" aria-label="Climate impact of hospital diets in Nova Scotia, Canada"><img loading="lazy" alt="" src="https://img.pagecloud.com/TYWOG6tpS3ol6Qd20kt309JybJk=/41x926:3317x4538/326x0/filters:no_upscale%28%29/planetary-health-and-sustainable-care/images/pexels-andres-ayrton-6550823.jpg"></a>
+      <div class="info r"><p class="tag">Hospital emissions</p><h3>Climate impact of hospital diets in Nova Scotia, Canada</h3><p class="d">Estimating the greenhouse gas emissions of patient diets and exploring emission reductions through replacement and plant-forward menus.</p><a class="go" href="https://sustainablecare.ca/research/hospital-food-emissions">Learn more &#8594;</a></div>
+    </div>
+    <div class="pin" style="left:24.85%;top:57.03%;--d:88;--dx:50;--dy:0">
+      <span class="stalk"></span><span class="shadow"></span>
+      <a class="head" href="https://sustainablecare.ca/research/can-eqi" aria-label="The Canadian Environmental Quality Index (Can-EQI)"><img loading="lazy" alt="" src="https://img.pagecloud.com/0dqXfqGqe5kPP3z3rxpLCdBv7pc=/539x0/filters:no_upscale%28%29/planetary-health-and-sustainable-care-copy/images/photo-1683665265710-9364501fcec0.jpg"></a>
+      <div class="info r"><p class="tag">Planetary health</p><h3>The Canadian Environmental Quality Index (Can-EQI)</h3><p class="d">A composite measure of environmental conditions in more than 28,000 neighbourhoods across Canada&#8217;s 30 largest cities.</p><a class="go" href="https://sustainablecare.ca/research/can-eqi">Learn more &#8594;</a></div>
+    </div>
+    <div class="pin soon" style="left:48.19%;top:71.56%;--d:80;--dx:0;--dy:150">
+      <span class="stalk"></span><span class="shadow"></span>
+      <div class="head"><img loading="lazy" alt="" src="https://img.pagecloud.com/mnjuOgUzYGNDtXl99L1ETZNIEvA=/677x0/filters:no_upscale%28%29/planetary-health-and-sustainable-care/images/hermes-rivera-ahHn48-zKWo-unsplash.jpg"></div>
+      <div class="info l"><p class="tag">Health systems</p><h3>Environmental impacts of national and provincial healthcare in Canada</h3><p class="d">Using environmentally-extended input-output modelling to quantify healthcare resource use and pollution.</p><span class="go">Coming soon</span></div>
+    </div>
+    <div class="pin soon" style="left:76.99%;top:86.03%;--d:72;--dx:0;--dy:0">
+      <span class="stalk"></span><span class="shadow"></span>
+      <div class="head"><img loading="lazy" alt="" src="https://img.pagecloud.com/PDfUBXOIMPP_sDKl2PgaRWC91bM=/2100x0/filters:no_upscale%28%29/planetary-health-and-sustainable-care-copy/images/photo-1589666564459-93cdd3ab856a.jpg"></div>
+      <div class="info l"><p class="tag">Health systems</p><h3>Adapting health economic evaluation to account for environmental impacts</h3><p class="d">Building environmental costs into health economic evaluation, so decisions weigh patient outcomes, spending and emissions together.</p><span class="go">Coming soon</span></div>
+    </div>
+</div>
+</section>

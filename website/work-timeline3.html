@@ -1,0 +1,127 @@
+<section id="work-timeline" aria-label="Our research projects">
+<style>
+#work-timeline{--ink:#14323a;--mute:#5d7378;--teal:#0f6b6e;--ghost:#a9bcc0;--line:#e3ecee;
+  background:#fff;color:var(--ink);color-scheme:light;padding:48px 20px 72px;font-family:inherit;box-sizing:border-box}
+#work-timeline *{box-sizing:border-box}
+#work-timeline .tl{position:relative;max-width:1100px;margin:0 auto;padding:0 72px}
+#work-timeline svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+#work-timeline path{fill:none;stroke-linecap:round}
+#work-timeline .p-live{stroke:var(--teal);stroke-width:6}
+#work-timeline .p-next{stroke:var(--ghost);stroke-width:5;stroke-dasharray:2 14}
+#work-timeline .lane{position:relative;display:flex;gap:24px;margin-bottom:44px}
+#work-timeline .lane.rev{flex-direction:row-reverse;margin-bottom:0}
+#work-timeline .stop{position:relative;flex:1;min-width:0;padding-bottom:70px}
+#work-timeline .stop::before{content:"";position:absolute;left:50%;bottom:22px;height:48px;width:3px;margin-left:-1px;background:var(--teal);opacity:.35}
+#work-timeline .stop.soon-stop::before{background:var(--ghost)}
+#work-timeline .mk{position:absolute;left:50%;bottom:9px;width:26px;height:26px;margin-left:-13px;border-radius:50%;
+  background:var(--teal);border:5px solid #fff;box-shadow:0 0 0 3px var(--teal);z-index:2}
+#work-timeline .mk.soon{background:#fff;box-shadow:0 0 0 3px var(--ghost)}
+#work-timeline .card{display:block;height:100%;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  text-decoration:none;color:inherit;transition:transform .2s,box-shadow .2s,border-color .2s}
+#work-timeline a.card:hover,#work-timeline a.card:focus-visible{transform:translateY(-3px);border-color:var(--teal);box-shadow:0 10px 28px rgba(15,107,110,.14)}
+#work-timeline a.card:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+#work-timeline .card img{display:block;width:100%;height:150px;object-fit:cover}
+#work-timeline .soon-card img{filter:grayscale(.75);opacity:.8}
+#work-timeline .body{padding:16px 18px 18px}
+#work-timeline .tag{font-size:13px;color:var(--teal);font-weight:600;margin:0 0 6px}
+#work-timeline .soon-card .tag,#work-timeline .soon-card .go{color:var(--mute)}
+#work-timeline h3{font-size:17px;line-height:1.3;margin:0 0 8px;font-weight:700}
+#work-timeline p.d{font-size:14.5px;line-height:1.55;color:var(--mute);margin:0}
+#work-timeline .go{display:inline-block;margin-top:12px;font-size:14px;font-weight:600;color:var(--teal)}
+@media (max-width:899px){
+  #work-timeline{padding:32px 16px 56px}
+  #work-timeline .tl{padding:0}
+  #work-timeline .lane,#work-timeline .lane.rev{display:block;margin:0}
+  #work-timeline .stop{padding:0 0 28px 56px}
+  #work-timeline .stop::before{left:20px;width:36px;height:3px;bottom:auto;top:50%;margin:0}
+  #work-timeline .mk{left:20px;bottom:auto;top:50%;margin:-13px 0 0 -13px}
+}
+@media (prefers-reduced-motion:reduce){#work-timeline *{transition:none!important}}
+</style>
+
+<div class="tl" id="wt-tl">
+  <svg aria-hidden="true"><path class="p-live" id="wt-live"/><path class="p-next" id="wt-next"/></svg>
+  <div class="lane">
+    <div class="stop">
+      <a class="card" href="https://sustainablecare.ca/research/healthcarelca">
+            <img loading="lazy" alt="" src="https://img.pagecloud.com/8TQCDTmhx3Cj3ORpJzsNbOfBFSE=/540x0/filters:no_upscale%28%29/planetary-health-and-sustainable-care/images/olga-kononenko-98__MsKaUsI-unsplash.jpg">
+            <div class="body"><p class="tag">Living data</p>
+              <h3>HealthcareLCA: A global database of healthcare’s environmental impacts</h3>
+              <p class="d">Collating existing healthcare-related life cycle assessment studies into a living, interactive repository.</p>
+              <span class="go">Learn more →</span></div>
+      <span class="mk" aria-hidden="true"></span>
+    </div>
+    <div class="stop">
+      <a class="card" href="https://healthatlas.ca/">
+            <img loading="lazy" alt="" src="https://img.pagecloud.com/lEYWbpiB7w_wM5n3F-lE58jjuq8=/1603x0:5232x3989/326x0/filters:no_upscale%28%29/planetary-health-and-sustainable-care-copy/images/photo-1626994891669-6155cc6274d4.jpg">
+            <div class="body"><p class="tag">Population health</p>
+              <h3>The Nova Scotia Health Atlas</h3>
+              <p class="d">Visualizing the determinants, health behaviours and health outcomes of Nova Scotians through an online, interactive tool.</p>
+              <span class="go">Learn more →</span></div>
+      <span class="mk" aria-hidden="true"></span>
+    </div>
+    <div class="stop">
+      <a class="card" href="https://sustainablecare.ca/research/hospital-food-emissions">
+            <img loading="lazy" alt="" src="https://img.pagecloud.com/TYWOG6tpS3ol6Qd20kt309JybJk=/41x926:3317x4538/326x0/filters:no_upscale%28%29/planetary-health-and-sustainable-care/images/pexels-andres-ayrton-6550823.jpg">
+            <div class="body"><p class="tag">Hospital emissions</p>
+              <h3>Climate impact of hospital diets in Nova Scotia, Canada</h3>
+              <p class="d">Estimating the greenhouse gas emissions of patient diets and exploring emission reductions through replacement and plant-forward menus.</p>
+              <span class="go">Learn more →</span></div>
+      <span class="mk" aria-hidden="true"></span>
+    </div>
+  </div>
+  <div class="lane rev">
+    <div class="stop">
+      <a class="card" href="https://sustainablecare.ca/research/can-eqi">
+            <img loading="lazy" alt="" src="https://img.pagecloud.com/0dqXfqGqe5kPP3z3rxpLCdBv7pc=/539x0/filters:no_upscale%28%29/planetary-health-and-sustainable-care-copy/images/photo-1683665265710-9364501fcec0.jpg">
+            <div class="body"><p class="tag">Planetary health</p>
+              <h3>The Canadian Environmental Quality Index (Can-EQI)</h3>
+              <p class="d">A composite measure of environmental conditions in more than 28,000 neighbourhoods across Canada’s 30 largest cities.</p>
+              <span class="go">Learn more →</span></div>
+      <span class="mk" aria-hidden="true"></span>
+    </div>
+    <div class="stop soon-stop">
+      <div class="card soon-card">
+            <img loading="lazy" alt="" src="https://img.pagecloud.com/mnjuOgUzYGNDtXl99L1ETZNIEvA=/677x0/filters:no_upscale%28%29/planetary-health-and-sustainable-care/images/hermes-rivera-ahHn48-zKWo-unsplash.jpg">
+            <div class="body"><p class="tag">Health systems</p>
+              <h3>Environmental impacts of national and provincial healthcare in Canada</h3>
+              <p class="d">Using environmentally-extended input-output modelling to quantify healthcare resource use and pollution.</p>
+              <span class="go">Coming soon</span></div>
+      <span class="mk soon" aria-hidden="true"></span>
+    </div>
+    <div class="stop soon-stop">
+      <div class="card soon-card">
+            <img loading="lazy" alt="" src="https://img.pagecloud.com/PDfUBXOIMPP_sDKl2PgaRWC91bM=/2100x0/filters:no_upscale%28%29/planetary-health-and-sustainable-care-copy/images/photo-1589666564459-93cdd3ab856a.jpg">
+            <div class="body"><p class="tag">Health systems</p>
+              <h3>Adapting health economic evaluation to account for environmental impacts</h3>
+              <p class="d">Building environmental costs into health economic evaluation, so decisions weigh patient outcomes, spending and emissions together.</p>
+              <span class="go">Coming soon</span></div>
+      <span class="mk soon" aria-hidden="true"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var tl=document.getElementById('wt-tl'),live=document.getElementById('wt-live'),next=document.getElementById('wt-next');
+  var mks=[].slice.call(tl.querySelectorAll('.mk')),lane=tl.querySelector('.lane'),mq=window.matchMedia('(max-width:899px)'),t;
+  function c(m,r){var b=m.getBoundingClientRect();return{x:b.left+b.width/2-r.left,y:b.top+b.height/2-r.top};}
+  function build(){
+    var r=tl.getBoundingClientRect(),p=mks.map(function(m){return c(m,r);}),d,d2;
+    if(mq.matches){
+      d='M'+p[0].x+' '+(p[0].y-40)+' L'+p[3].x+' '+p[3].y;
+      d2='M'+p[3].x+' '+p[3].y+' L'+p[5].x+' '+(p[5].y+40);
+    }else{
+      var xe=lane.getBoundingClientRect().right-r.left,y1=p[0].y,y2=p[3].y;
+      d='M0 '+y1+' L'+xe+' '+y1+' C'+(xe+72)+' '+y1+' '+(xe+72)+' '+y2+' '+xe+' '+y2+' L'+p[3].x+' '+y2;
+      d2='M'+p[3].x+' '+y2+' L0 '+y2;
+    }
+    live.setAttribute('d',d);next.setAttribute('d',d2);
+  }
+  function later(){clearTimeout(t);t=setTimeout(build,100);}
+  window.addEventListener('resize',later);window.addEventListener('load',build);
+  [].forEach.call(tl.querySelectorAll('img'),function(i){i.addEventListener('load',later);});
+  build();
+})();
+</script>
+</section>
