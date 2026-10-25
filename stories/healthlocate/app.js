@@ -205,6 +205,10 @@ function hideSuggestions() {
   activeIndex = -1;
 }
 
+// Start downloading the community boundaries as soon as the page opens, so the data
+// is ready by the time an address is chosen (it is the largest file on the page).
+loadCommunityData().catch(() => {});
+
 // ---------- Selection -> profile lookup ----------
 async function selectItem(item) {
   input.value = item.label;
@@ -249,7 +253,7 @@ function renderResult(data) {
   renderCommunityInfo(data.community_info || []);
 
   currentPatient = { lat: data.lat, lng: data.lng, name: `${data.community} · ${data.address}` };
-  loadAllServices().catch(() => {}); // prefetch all service types in the background
+  setTimeout(() => loadAllServices().catch(() => {}), 400); // prefetch service types after the profile has painted
   resetServices();
 
   const categories = (data.categories || []).filter(category => category.icon !== "transit");
