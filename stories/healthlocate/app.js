@@ -468,6 +468,7 @@ const SERVICE_CATS = [
 // Saved in sessionStorage (cleared when the tab closes, so patient locations are not kept).
 const SVC_TTL = 60 * 60 * 1000;
 const svcPending = {};
+const svcSingle = {};
 const svcLoc = () => `${Number(currentPatient.lat).toFixed(3)},${Number(currentPatient.lng).toFixed(3)}`;
 
 function loadAllServices() {
@@ -491,13 +492,17 @@ function loadAllServices() {
 }
 
 async function getServices(cat) {
+  const key = svcLoc() + "|" + cat;
+  const single = () =>
+    (svcSingle[key] ||= localFetch(`/api/services?lat=${currentPatient.lat}&lng=${currentPatient.lng}&category=${cat}`)
+      .then(async (r) => { if (!r.ok) throw new Error(); return r.json(); })
+      .catch((e) => { delete svcSingle[key]; throw e; }));
+  const combined = loadAllServices().then((all) => all[cat] || []);
   try {
-    return (await loadAllServices())[cat] || [];
+    // give the shared lookup 12 s; if it fails or is slow, also run the single-type search and take the first success
+    return await Promise.race([combined, new Promise((_, rej) => setTimeout(rej, 12000))]);
   } catch {
-    // fallback: single-category lookup if the combined one fails
-    const r = await localFetch(`/api/services?lat=${currentPatient.lat}&lng=${currentPatient.lng}&category=${cat}`);
-    if (!r.ok) throw new Error();
-    return r.json();
+    return Promise.any([combined, single()]);
   }
 }
 
