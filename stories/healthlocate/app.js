@@ -249,6 +249,7 @@ function renderResult(data) {
   renderCommunityInfo(data.community_info || []);
 
   currentPatient = { lat: data.lat, lng: data.lng, name: `${data.community} · ${data.address}` };
+  loadAllServices().catch(() => {}); // prefetch all service types in the background
   resetServices();
 
   const categories = (data.categories || []).filter(category => category.icon !== "transit");
@@ -457,6 +458,45 @@ const SERVICE_CATS = [
   { key: "laboratory",    label: "Laboratory",     icon: "lab" },
 ];
 
+// ---------- Services cache ----------
+// One combined lookup per location (rounded to ~100 m) covers every service type.
+// The pending request is shared, so tabs, prefetch and print never search twice.
+// Saved in sessionStorage (cleared when the tab closes, so patient locations are not kept).
+const SVC_TTL = 60 * 60 * 1000;
+const svcPending = {};
+const svcLoc = () => `${Number(currentPatient.lat).toFixed(3)},${Number(currentPatient.lng).toFixed(3)}`;
+
+function loadAllServices() {
+  const loc = svcLoc();
+  try {
+    const o = JSON.parse(sessionStorage.getItem("svc:" + loc));
+    if (o && Date.now() - o.t < SVC_TTL) return Promise.resolve(o.v);
+  } catch {}
+  if (!svcPending[loc]) {
+    const { lat, lng } = currentPatient;
+    svcPending[loc] = localFetch(`/api/services_all?lat=${lat}&lng=${lng}`)
+      .then(async (r) => {
+        if (!r.ok) throw new Error();
+        const v = await r.json();
+        try { sessionStorage.setItem("svc:" + loc, JSON.stringify({ t: Date.now(), v })); } catch {}
+        return v;
+      })
+      .catch((e) => { delete svcPending[loc]; throw e; }); // failures are never cached
+  }
+  return svcPending[loc];
+}
+
+async function getServices(cat) {
+  try {
+    return (await loadAllServices())[cat] || [];
+  } catch {
+    // fallback: single-category lookup if the combined one fails
+    const r = await localFetch(`/api/services?lat=${currentPatient.lat}&lng=${currentPatient.lng}&category=${cat}`);
+    if (!r.ok) throw new Error();
+    return r.json();
+  }
+}
+
 (function buildServiceButtons() {
   const el = document.getElementById("serviceCats");
   if (!el) return;
@@ -490,11 +530,7 @@ async function selectServiceCategory(cat, btn) {
 
   res.innerHTML = '<p class="svc-msg"><span class="spinner"></span> Finding nearby services…</p>';
   try {
-    const url = `/api/services?lat=${currentPatient.lat}&lng=${currentPatient.lng}&category=${cat}`;
-    const r = await localFetch(url);
-    if (!r.ok) throw new Error();
-    const items = await r.json();
-    renderServices(items);
+    renderServices(await getServices(cat));
   } catch {
     res.innerHTML = '<p class="svc-msg error">Could not load services right now. Please try again.</p>';
   }
@@ -574,8 +610,7 @@ document.getElementById("pmGenerate").addEventListener("click", async () => {
     try {
       const groups = await Promise.all(
         chosen.map(async (cat) => {
-          const r = await localFetch(`/api/services?lat=${currentPatient.lat}&lng=${currentPatient.lng}&category=${cat}`);
-          const items = r.ok ? await r.json() : [];
+          const items = await getServices(cat).catch(() => []);
           return { cat, items: Array.isArray(items) ? items.slice(0, 4) : [] };
         })
       );
