@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Can-EQI Map</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <style>
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+  #controls {
+    padding: 10px;
+    background: #fff;
+    z-index: 1000;
+  }
+
+  #map {
+    height: calc(100vh - 50px);
+    width: 100%;
+  }
+
+  /* ---- Legend styles ---- */
+  .legend {
+    background: white;
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 18px;
+    color: #333;
+    border-radius: 4px;
+    box-shadow: 0 0 6px rgba(0,0,0,0.2);
+  }
+
+  .legend i {
+    width: 14px;
+    height: 14px;
+    float: left;
+    margin-right: 6px;
+    opacity: 0.85;
+  }
+  </style>
+
+</head>
+
+<body>
+
+<div id="controls">
+  City:
+  <select id="citySelect">
+    <option value="montreal">Montreal</option>
+    <option value="abbotsford">Abbotsford</option>
+    <option value="barrie">Barrie</option>
+    <option value="calgary">Calgary</option>
+    <option value="chicoutimi">Chicoutimi</option>
+    <option value="edmonton">Edmonton</option>
+    <option value="gatineau">Gatineau</option>
+    <option value="guelph">Guelph</option>
+    <option value="halifax">Halifax</option>
+    <option value="hamilton">Hamilton</option>
+    <option value="kelowna">Kelowna</option>
+    <option value="kingston">Kingston</option>
+    <option value="kitchener">Kitchener</option>
+    <option value="london">London</option>
+    <option value="milton">Milton</option>
+    <option value="moncton">Moncton</option>
+    <option value="oshawa">Oshawa</option>
+    <option value="ottawa">Ottawa</option>
+    <option value="quebec">Quebec</option>
+    <option value="regina">Regina</option>
+    <option value="saskatoon">Saskatoon</option>
+    <option value="sherbrooke">Sherbrooke</option>
+    <option value="st_catharines">St. Catharines</option>
+    <option value="st_johns">St. John's</option>
+    <option value="toronto">Toronto</option>
+    <option value="trois_rivieres">Trois Rivieres</option>
+    <option value="vancouver">Vancouver</option>
+    <option value="victoria">Victoria</option>
+    <option value="windsor">Windsor</option>
+    <option value="winnipeg">Winnipeg</option>
+  </select>
+
+  Variable:
+  <select id="varSelect">
+    <option value="EQI_city">Environmental Quality Index (EQI)</option>
+
+    <option value="pm25_q_city">PM2.5 (ug/m3)</option>
+    <option value="no2_q_city">NO2 (ppb)</option>
+    <option value="ndvi_q_city">Greenness (NDVI)</option>
+    <option value="wtr_ds_q_city">Bluespace (Distance to Water) (m)</option>
+    <option value="rd_lng_q_city">Length of Roads</option>
+    <option value="near_pp_q_city">Distance to Power Plants (m)</option>
+    <option value="m_d_d_q_city">Annual Average UV Radiation (J/m2)</option>
+    <option value="d_h_tm_q_city">Difference during heat wave (°C)</option>
+    <option value="d_c_tm_q_city">Difference during cold wave (°C)</option>
+  </select>
+
+
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+const map = L.map("map").setView([45.5, -73.6], 10);
+
+// ---- Legend control ----
+const legend = L.control({ position: "bottomright" });
+
+legend.onAdd = function () {
+  const div = L.DomUtil.create("div", "legend");
+  div.innerHTML = "<strong>Legend</strong><br>";
+  return div;
+};
+
+legend.addTo(map);
+
+
+
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: "© OpenStreetMap"
+}).addTo(map);
+
+let geoLayer;
+
+// function colorEQI(v) {
+//   if (v === null || v === undefined) return "#ccc";
+
+//   const min = 0;
+//   const max = 100;
+
+//   const t = Math.max(0, Math.min(1, (v - min) / (max - min)));
+
+//   // red (low EQI) → green (high EQI), as in the paper
+//   return interpolateColor("#d73027", "#1a9850", t);
+// }
+
+
+function colorEQI(v) {
+  if (v === null || v === undefined) return "#ccc";
+
+  if (v <= 20) return "#b2182b";
+  if (v <= 30) return "#d6604d";
+  if (v <= 40) return "#f4a582";
+  if (v <= 50) return "#fddbc7";
+  if (v <= 60) return "#e6f598";
+  if (v <= 70) return "#abdda4";
+  if (v <= 80) return "#66c2a5";
+  if (v <= 90) return "#1a9850";
+  return "#006837";
+}
+
+
+
+function interpolateColor(color1, color2, factor) {
+  const c1 = color1.match(/\w\w/g).map(x => parseInt(x, 16));
+  const c2 = color2.match(/\w\w/g).map(x => parseInt(x, 16));
+  const c = c1.map((v, i) =>
+    Math.round(v + factor * (c2[i] - v))
+  );
+  return "#" + c.map(x => x.toString(16).padStart(2, "0")).join("");
+}
+
+function colorQ(v) {
+  if (v === null || v === undefined) return "#ccc";
+
+  const min = 1;
+  const max = 10;
+
+  const t = Math.max(0, Math.min(1, (v - min) / (max - min)));
+
+  // light (worse) → dark (better)
+  return interpolateColor("#a8ddb5", "#084081", t);
+}
+
+
+///// new color map
+
+// function colorAir(v) {
+//   return interpolateColor("#ffffb2", "#8c2d04", scaleQ(v));
+// }
+
+function colorAir(v) {
+  return interpolateColor("#8c2d04", "#ffffb2", scaleQ(v));
+}
+
+
+function colorGreen(v) {
+  return interpolateColor("#e5f5e0", "#006d2c", scaleQ(v));
+}
+
+function colorBlue(v) {
+  return interpolateColor("#deebf7", "#08519c", scaleQ(v));
+}
+
+function colorPurple(v) {
+  return interpolateColor("#efedf5", "#54278f", scaleQ(v));
+}
+
+function colorOrange(v) {
+  return interpolateColor("#fff7bc", "#d94801", scaleQ(v));
+}
+
+function colorRed(v) {
+  return interpolateColor("#a50f15", "#fee5d9", scaleQ(v));
+}
+
+function colorCold(v) {
+  return interpolateColor("#08519c", "#eff3ff", scaleQ(v));
+}
+
+// function colorRoad(v) {
+//   if (v === null || v === undefined) return "#eee";
+
+//   const t = scaleQ(v); // uses your existing 1–10 scaling
+
+//   // light grey → dark grey
+//   return interpolateColor("#f0f0f0", "#525252", t);
+// }
+
+function colorRoad(v) {
+  if (v === null || v === undefined) return "#eee";
+  const t = scaleQ(v);
+  return interpolateColor("#f6e8c3", "#8c510a", t);
+}
+
+
+
+function scaleQ(v) {
+  if (v === null || v === undefined) return 0;
+  return Math.max(0, Math.min(1, (v - 1) / 9));
+}
+
+/////////
+
+function updateLegend(variable) {
+  const div = legend.getContainer();
+  div.innerHTML = "<strong>Legend</strong><br>";
+
+  let label = "";
+  let gradient = "";
+  let minLabel = "";
+  let maxLabel = "";
+
+  if (variable === "EQI_city") {
+    div.innerHTML += "<em>EQI (deciles)</em><br>";
+
+    const grades = [
+      [0, 20, "#b2182b"],
+      [21, 30, "#d6604d"],
+      [31, 40, "#f4a582"],
+      [41, 50, "#fddbc7"],
+      [51, 60, "#e6f598"],
+      [61, 70, "#abdda4"],
+      [71, 80, "#66c2a5"],
+      [81, 90, "#1a9850"],
+      [91, 100, "#006837"]
+    ];
+
+    grades.forEach(g => {
+      div.innerHTML += `
+        <i style="background:${g[2]}"></i>
+        ${g[0]}–${g[1]}<br>
+      `;
+    });
+
+    return;
+  }
+
+
+  else if (variable === "pm25_q_city" || variable === "no2_q_city") {
+    label = "Air pollution score (1 to 10)";
+    gradient = "linear-gradient(to right, #8c2d04, #ffffb2)";
+    minLabel = "1";
+    maxLabel = "10";
+  }
+
+  else if (variable === "ndvi_q_city") {
+    label = "Greenness score (1 to 10)";
+    gradient = "linear-gradient(to right, #e5f5e0, #006d2c)";
+    minLabel = "1";
+    maxLabel = "10";
+  }
+
+  else if (variable === "wtr_ds_q_city") {
+    label = "Bluespace score (1 to 10)";
+    gradient = "linear-gradient(to right, #deebf7, #08519c)";
+    minLabel = "1";
+    maxLabel = "10";
+  }
+
+  else if (variable === "near_pp_q_city") {
+    label = "Distance to power plants score (1 to 10)";
+    gradient = "linear-gradient(to right, #efedf5, #54278f)";
+    minLabel = "1";
+    maxLabel = "10";
+  }
+
+  else if (variable === "m_d_d_q_city") {
+    label = "UV radiation score (1 to 10)";
+    gradient = "linear-gradient(to right, #fff7bc, #d94801)";
+    minLabel = "1";
+    maxLabel = "10";
+  }
+
+  else if (variable === "d_h_tm_q_city") {
+    label = "Heat wave difference score (1 to 10)";
+    gradient = "linear-gradient(to right, #a50f15, #fee5d9)";
+    minLabel = "1";
+    maxLabel = "10";
+  }
+
+  else if (variable === "d_c_tm_q_city") {
+    label = "Cold wave difference score (1 to 10)";
+    gradient = "linear-gradient(to right, #08519c, #eff3ff)";
+    minLabel = "1";
+    maxLabel = "10";
+  }
+
+  else if (variable === "rd_lng_q_city") {
+  label = "Length of roads score (1 to 10)";
+  gradient = "linear-gradient(to right, #f6e8c3, #8c510a)";
+  minLabel = "1";
+  maxLabel = "10";
+  }
+
+
+  div.innerHTML += `<em>${label}</em><br>`;
+
+  div.innerHTML += `
+    <div style="
+      height: 14px;
+      width: 220px;
+      background: ${gradient};
+      margin: 8px 0 4px 0;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    "></div>
+    <div style="
+      display:flex;
+      justify-content:space-between;
+      width:220px;
+    ">
+      <span>${minLabel}</span>
+      <span>${maxLabel}</span>
+    </div>
+  `;
+}
+ 
+///////
+
+
+function loadCity(city, variable) {
+  if (geoLayer) map.removeLayer(geoLayer);
+
+  fetch(`geojson_cities_w_rd/${city}_da.geojson`)
+    .then(r => r.json())
+    .then(data => {
+      geoLayer = L.geoJSON(data, {
+        style: f => ({
+          fillColor: (() => {
+            const v = f.properties[variable];
+
+            if (variable === "EQI_city") return colorEQI(v);
+
+            if (variable === "pm25_q_city" || variable === "no2_q_city")
+              return colorAir(v);
+
+            if (variable === "ndvi_q_city")
+              return colorGreen(v);
+
+            if (variable === "wtr_ds_q_city")
+              return colorBlue(v);
+
+            if (variable === "near_pp_q_city")
+              return colorPurple(v);
+
+            if (variable === "m_d_d_q_city")
+              return colorOrange(v);
+
+            if (variable === "d_h_tm_q_city")
+              return colorRed(v);
+
+            if (variable === "d_c_tm_q_city")
+              return colorCold(v);
+
+            if (variable === "rd_lng_q_city")
+              return colorRoad(v);
+
+            return "#ccc";
+          })(),
+          weight: 0.3,
+          color: "#444",
+          fillOpacity: 0.85
+        }),
+
+        // onEachFeature: (f, layer) => {
+        //   layer.bindTooltip(
+        //     `DAUID: ${f.properties.DAUID}<br>
+        //      ${variable}: ${f.properties[variable]}`
+        //   );
+        // }
+        
+        onEachFeature: (f, layer) => {
+          let value = f.properties[variable];
+
+          if (variable === "EQI_city" && value !== null && value !== undefined) {
+            value = Number(value).toFixed(2);
+          }
+          
+          layer.bindTooltip(
+            `DAUID: ${f.properties.DAUID}<br>
+            ${variable}: ${value}`
+          );
+        }
+       
+      }).addTo(map);
+
+      map.fitBounds(geoLayer.getBounds());
+      
+      // update legend here
+      updateLegend(variable);
+      
+      // 🔑 THIS LINE FIXES YOUR ISSUE
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 100);
+    });
+}
+
+
+document.getElementById("citySelect").onchange = () =>
+  loadCity(citySelect.value, varSelect.value);
+
+document.getElementById("varSelect").onchange = () =>
+  loadCity(citySelect.value, varSelect.value);
+
+loadCity("montreal", "EQI_city");
+</script>
+
+</body>
+</html>

@@ -4,25 +4,17 @@
 
 <title>Can-EQI Dashboard</title>
 
-<!-- Google Fonts -->
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet" class="design-safe">
-
-<!-- Leaflet CSS -->
-
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" class="design-safe">
 
-<!-- Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js" class="design-safe pagecloud-sandbox" data-pagecloud-original-type="" type="text/javascript" pagecloud-version="2.1.1"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js" class="design-safe pagecloud-sandbox"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js" class="design-safe pagecloud-sandbox" data-pagecloud-original-type="" type="text/javascript" pagecloud-version="2.1.1"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js" class="design-safe pagecloud-sandbox"></script>
-
-<style class="design-safe">
+<style class="design-safe" pagecloud-version="2.4.8">
     :root {
       --primary: #2c3e50;
       --bg: #f8f9fa;
@@ -35,7 +27,8 @@
       font-family: 'Inter', sans-serif;
       color: #333;
       background-color: var(--bg);
-      overflow: hidden; 
+      /* overflow: hidden;  */
+      overflow-x: hidden;
     }
 
     #app-container {
@@ -172,18 +165,43 @@
 	}
 	
     /* 4. Radar */
-    .sb-radar {
+    /* .sb-radar {
       height: 250px; 
       padding: -4px 15px 10px 15px;
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
+    } */
+
+    .sb-radar {
+      min-height: 220px;
+      height: 28vh;
+      max-height: 350px;
+      padding: 0 15px 10px 15px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
     }
+    
+    /* #radar-container {
+      flex: 1;
+      position: relative;
+      width: 100%;
+    } */
+
     #radar-container {
       flex: 1;
       position: relative;
       width: 100%;
+      height: 100%;
+      min-height: 220px;
     }
+
+    #radarChart {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
 
     /* Spacer to fill bottom */
     .sb-spacer {
@@ -281,13 +299,13 @@
 
       <!-- 2. Scorecard -->
       <div class="sb-scorecard">
-        <div class="city-name" id="displayName">Toronto</div>
+        <div id="displayName" class="city-name">Toronto</div>
         <div class="metrics-row">
           <div class="m-box">
             <div class="m-label">EQI Score<br>
               <span style="font-weight:400; font-size:0.6rem;">(0-100)</span>
             </div>
-            <div class="m-val" id="displayScore">--</div>
+            <div id="displayScore" class="m-val">--</div>
           </div>
           <div class="m-box">
             <div class="m-label">
@@ -295,7 +313,7 @@
               <span style="font-weight:400; font-size:0.6rem;">(out of 30)</span>
             </div>
 
-            <div class="m-val" id="displayRank">--</div>
+            <div id="displayRank" class="m-val">--</div>
           </div>
         </div>
       </div>
@@ -339,9 +357,9 @@
   </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" class="design-safe pagecloud-sandbox"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" class="design-safe pagecloud-sandbox" data-pagecloud-original-type="" type="text/javascript" pagecloud-version="2.1.1"></script>
 
-<script class="design-safe pagecloud-sandbox">
+<script class="design-safe pagecloud-sandbox" data-pagecloud-original-type="" type="text/javascript" pagecloud-version="2.1.1">
 /* -----------------------------------------------------
    MAP INIT
    ----------------------------------------------------- */
@@ -493,8 +511,8 @@ const tableMap = [
   { label: "Distance to Power Plants (m)", scoreKey: "Distance to Power Plants (m)", rankKey: "near_pp_q_rank" },
   { label: "Length of Roads", scoreKey: "Length of Roads", rankKey: "rd_lng_q_rank" },
   { label: "Annual Average UV Radiation (J/m2)", scoreKey: "Annual Average UV Radiation (J/m2)", rankKey: "m_d_d_q_rank" },
-  { label: "Difference during heat wave (°C)", scoreKey: "Difference during heat wave (°C)", rankKey: "d_h_tm_q_rank" },
-  { label: "Difference during cold wave (°C)", scoreKey: "Difference during cold wave (°C)", rankKey: "d_c_tm_q_rank" }
+  { label: "Difference during heat wave (&#176;C)", scoreKey: "Difference during heat wave (°C)", rankKey: "d_h_tm_q_rank" },
+  { label: "Difference during cold wave (&#176;C)", scoreKey: "Difference during cold wave (°C)", rankKey: "d_c_tm_q_rank" }
 ];
 
 Promise.all([
@@ -594,6 +612,7 @@ function initRadar(city) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      resizeDelay: 0,
       plugins: { legend: { display: false } },
       scales: {
         r: {
@@ -611,6 +630,12 @@ function updateRadar(city) {
   radarChart.data.datasets[0].data = tableMap.map(m => cityRadarData[city]?.[m.scoreKey] || 0);
   radarChart.update();
 }
+
+window.addEventListener("resize", function() {
+  if (radarChart) {
+    radarChart.resize();
+  }
+});
 
 // Events
 document.getElementById("citySelect").onchange = function() {
